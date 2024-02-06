@@ -1,10 +1,12 @@
 :root {
   color-scheme: light dark;
   --border-radius: 1.5rem;
+  --bg-color: #262734;
+  --main-color: #424349;
 }
 
 @media (prefers-color-scheme: dark) {
-  body { background: #333; color: white; }
+  body { background: var(--main-color); color: #f1e3e3; }
 }
 
 @media (prefers-color-scheme: light) {
@@ -45,7 +47,7 @@ menu::-webkit-scrollbar {
   border-radius: var(--border-radius);
   overflow: inherit;
   padding: 20px;
-  background-color: #181818;
+  background-color: var(--bg-color);
   box-sizing: border-box;
 }
 
@@ -61,7 +63,7 @@ menu > li {
 }
 
 .active {
-  background-color: #181818;
+  background-color: var(--bg-color);
 }
 
 .active::after,
@@ -76,12 +78,12 @@ menu > li {
 
 .active::before {
   top: calc(var(--border-radius) * -1);
-  box-shadow: 10px 10px 0 10px #181818;
+  box-shadow: 10px 10px 0 10px var(--bg-color);
   border-radius: 0 0 100vw 0;
 }
 .active::after {
   bottom: calc(var(--border-radius) * -1);
-  box-shadow: 10px -10px 0 10px #181818;
+  box-shadow: 10px -10px 0 10px var(--bg-color);
   border-radius: 0 100vw 0 0;
 }
 
