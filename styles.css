@@ -1,0 +1,101 @@
+:root {
+  color-scheme: light dark;
+  --border-radius: 1.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  body { background: #333; color: white; }
+}
+
+@media (prefers-color-scheme: light) {
+  body { background: #ddd; color: black; }
+}
+
+html,
+body {
+   margin: 0;
+   padding: 0;
+}
+
+main {
+  display: flex;
+  height: 100vh;
+  padding: 20px 20px;
+  overflow: hidden;
+  box-sizing: border-box;
+  gap: -10px;
+}
+
+menu {
+  min-width: 300px;
+  border-radius: var(--border-radius) 0 0 var(--border-radius);
+  overflow-y: scroll;
+  max-height: 100%;
+  box-sizing: border-box;
+  padding: 15px 0;
+  margin: 30px 0;
+}
+
+menu::-webkit-scrollbar {
+  display: none;
+}
+
+.module-settings {
+  flex-grow: 1;
+  border-radius: var(--border-radius);
+  overflow: inherit;
+  padding: 20px;
+  background-color: #181818;
+  box-sizing: border-box;
+}
+
+menu > li {
+  height: 60px;
+  border-radius: var(--border-radius) 0 0 var(--border-radius);
+  text-align: center;
+  line-height: 60px;
+  position: relative;
+  list-style-type: none;
+  transition: line-height 100ms ease;
+  cursor: pointer;
+}
+
+.active {
+  background-color: #181818;
+}
+
+.active::after,
+.active::before {
+  content: '';
+  position: absolute;
+  width: var(--border-radius);
+  height: var(--border-radius);
+  right: 0;
+  border-radius: 100vw;
+}
+
+.active::before {
+  top: calc(var(--border-radius) * -1);
+  box-shadow: 10px 10px 0 10px #181818;
+  border-radius: 0 0 100vw 0;
+}
+.active::after {
+  bottom: calc(var(--border-radius) * -1);
+  box-shadow: 10px -10px 0 10px #181818;
+  border-radius: 0 100vw 0 0;
+}
+
+menu > li:hover {
+  line-height: 55px;
+}
+
+.settings-wrapper {
+  display: flex;
+  gap: 20px;
+}
+
+h3 {
+  user-select: none;
+  font-family: "Lucida Console", "Courier New", monospace;
+}
+

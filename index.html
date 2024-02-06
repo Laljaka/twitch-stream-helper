@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self';"
+    />
+    <title>Hello from Electron renderer!</title>
+    <link rel="stylesheet" type="text/css" href="./styles.css">
+  </head>
+  <body>
+    <main>
+      <menu>
+        <li id="websocket"><h3>Twitch API</h3></li>
+        <li id="http"><h3>HTTP server</h3></li>
+        <li id="three"><h3>Renderer</h3></li>
+        <li id="elevenlabs"><h3>Elevenlabs API</h3></li>
+      </menu>
+      <div class="module-settings" id="settings">
+        <div class="settings-wrapper" id="settings-wrapper"></div>
+
+      </div>
+    </main>
+  </body>
+  <script src="./renderer.js"></script>
+</html>
