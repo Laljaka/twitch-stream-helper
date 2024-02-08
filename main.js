@@ -9,7 +9,9 @@ const modules = {}
 function createMainWindow() {
     const win = new BrowserWindow({
         width: 800,
+        minWidth: 700,
         height: 600,
+        minHeight: 550,
         autoHideMenuBar: true,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js')
