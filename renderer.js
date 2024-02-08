@@ -71,17 +71,12 @@ let context = 'base'
 
 const settings = document.getElementById('settings-wrapper')
 
-const modules = document.querySelectorAll('main menu li')
+const modules = document.querySelectorAll('.inactive')
 
-modules.forEach(async (module) => {
+modules.forEach(async (module, key) => {
   module.addEventListener('click', async() => {
     context = module.id
-    module.className = 'active'
-    modules.forEach((md) => {
-      if (md.id !== context) {
-        md.className = ''
-      }
-    })
+    document.getElementById('aaa').style.top = `${(-70 * (modules.length - key))}px`
     settings.replaceChildren(startStopHolder, col[context])
   })
 })
