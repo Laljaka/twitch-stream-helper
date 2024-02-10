@@ -1,30 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <script type="text/javascript" src="https://livejs.com/live.js"></script> <!-- ONLY FOR PROTOTYPING -->
     <meta charset="UTF-8" />
-    <meta
+    <!--<meta
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self';"
-    />
+    />-->
     <title>Hello from Electron renderer!</title>
     <link rel="stylesheet" type="text/css" href="./styles.css">
   </head>
   <body>
     <main>
-      <label class="switch">test
-          <input type="checkbox">
-          <span class="slider"></span>
-        </label>
       <menu>
         <li class="inactive" id="websocket"><h3>Twitch API</h3></li>
         <li class="inactive" id="http"><h3>HTTP server</h3></li>
-        <li class="inactive" id="three"><h3>Renderer</h3></li>
+        <li class="inactive" id="renderer"><h3>Renderer</h3></li>
         <li class="inactive" id="elevenlabs"><h3>Elevenlabs API</h3></li>
         <li class="active" id="aaa"></li>
       </menu>
-      <div class="module-settings" id="settings">
+      <div class="module-settings" id="-websocket">
+        <fieldset class="wrapper setting"><legend>Brief</legend>
+          Test text
+        </fieldset>
+        <fieldset class="wrapper setting"><legend>Settings</legend>
 
+        </fieldset>
+        <fieldset class="wrapper setting"><legend>Controls</legend>
+          <button>Activate</button>
+          <button>Reset</button>
+          <button>Deactivate</button>
+        </fieldset>
+        <fieldset class="wrapper output"><legend>Console</legend>
+          <span>Twitch API :> </span>
+        </fieldset>
+      </div>
+      <div class="module-settings" id="-http">
+        <fieldset class="wrapper setting"><legend>Brief</legend>
+          Test text
+        </fieldset>
+        <fieldset class="wrapper setting"><legend>Settings</legend>
 
+        </fieldset>
+        <fieldset class="wrapper setting"><legend>Controls</legend>
+          <button>Activate</button>
+          <button>Reset</button>
+          <button>Deactivate</button>
+        </fieldset>
+        <fieldset class="wrapper output"><legend>Console</legend>
+          <span>HTTP Server :> </span>
+        </fieldset>
+      </div>
+      <div class="module-settings" id="-renderer">
+        <fieldset class="wrapper setting"><legend>Brief</legend>
+          Test text
+        </fieldset>
+        <fieldset class="wrapper setting"><legend>Settings</legend>
+
+        </fieldset>
+        <fieldset class="wrapper setting"><legend>Controls</legend>
+          <button>Activate</button>
+          <button>Reset</button>
+          <button>Deactivate</button>
+        </fieldset>
+        <fieldset class="wrapper output"><legend>Console</legend>
+          <span>Renderer :> </span>
+        </fieldset>
+      </div>
+      <div class="module-settings" id="-elevenlabs">
+        <fieldset class="wrapper setting"><legend>Brief</legend>
+          Test text
+        </fieldset>
+        <fieldset class="wrapper setting"><legend>Settings</legend>
+
+        </fieldset>
+        <fieldset class="wrapper setting"><legend>Controls</legend>
+          <button>Activate</button>
+          <button>Reset</button>
+          <button>Deactivate</button>
+        </fieldset>
+        <fieldset class="wrapper output"><legend>Console</legend>
+          <span>Elevenlabs API :> </span>
+        </fieldset>
       </div>
     </main>
   </body>
