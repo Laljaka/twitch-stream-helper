@@ -1,14 +1,18 @@
-const { ipcRenderer } = require('electron/renderer')
+import { ipcRenderer } from 'electron/renderer'
 
-let timeout
+
+let timeout: NodeJS.Timeout
 
 let socket = new WebSocket('wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=100')
-addListeners()
+
+//TODO explore this reference of a websocket in the callback of the event listener
+socket.addEventListener('open', opened)
+socket.addEventListener('message', message)
 
 let SID = ""
 
 async function unsub() {
-    let response = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
+    let response: any | Response = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
         method: "GET",
         headers: {
             "Authorization": "Bearer ",
@@ -60,27 +64,28 @@ async function sub() {
 // TODO check if reconnected websocket registers events
 function reconnect(reconnect_url = null) {
     clearTimeout(timeout)
-    socket.removeAllListeners()
+    socket.removeEventListener("open", opened)
+    socket.removeEventListener("message", message)
     socket.close()
-    socket = null
     if (reconnect_url !== null) {
         socket = new WebSocket(reconnect_url)
-        addListeners()
+        socket.addEventListener('open', opened)
+        socket.addEventListener('message', message)
     } else {
         socket = new WebSocket('wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=100')
-        addListeners()
+        socket.addEventListener('open', opened)
+        socket.addEventListener('message', message)
     }
 }
 
-function addListeners() {
-    socket.addEventListener('open', async function opened() {
-        ipcRenderer.send('websocket', {
-            type: "log",
-            message: "connection open"
-        })
+async function opened() {
+    ipcRenderer.send('websocket', {
+        type: "log",
+        message: "connection open"
     })
+}
 
-    socket.addEventListener('message', async function message(data) {
+async function message(data: MessageEvent<any>) {
     let json = JSON.parse(data.data)
     switch (json.metadata.message_type) {
         case "session_welcome":
@@ -127,15 +132,13 @@ function addListeners() {
             timeout = setTimeout(reconnect, 100000)
             console.log(json)
     }
-})
 }
-
 
 ipcRenderer.on('websocket', (_, m) => {
     if (m === "close") {
         socket.close()
-        socket.removeAllListeners()
-        socket = null
+        socket.removeEventListener("open", opened)
+        socket.removeEventListener("message", message)
         process.exit()
     }
 })

@@ -1,10 +1,10 @@
-const { ipcRenderer } = require('electron/renderer')
-const http = require('http')
+import { ipcRenderer } from 'electron/renderer';
+import http from 'http';
 
 const host = "localhost"
 const port = 6969
 
-const requestListener = function (req, res) {
+const requestListener = function (req:any, res:any) {
     res.writeHead(200);
     res.end("My first server!");
 };

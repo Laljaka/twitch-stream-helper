@@ -1,10 +1,14 @@
-const { app, BrowserWindow, ipcMain, utilityProcess } = require('electron')
+import { app, BrowserWindow, ipcMain, utilityProcess } from 'electron'
 
-const path = require("node:path")
+import path from "node:path"
 
-const fs = require("fs")
+import fs from "fs"
 
-const modules = {}
+interface Modules {
+    [key: string]: BrowserWindow
+}
+
+const modules: Modules = {}
 
 function createMainWindow() {
     const win = new BrowserWindow({
@@ -18,7 +22,7 @@ function createMainWindow() {
         }
     })
 
-    win.loadFile('index.html')
+    win.loadFile(path.join(__dirname, 'index.html'))
 
     win.on('closed', () => {
         app.quit()
@@ -26,7 +30,7 @@ function createMainWindow() {
     return win
 }
 
-function createHiddenWindow(moduleName) {
+function createHiddenWindow(moduleName: string) {
     const win = new BrowserWindow({
         width: 200,
         height: 200,
@@ -36,11 +40,11 @@ function createHiddenWindow(moduleName) {
             contextIsolation: false
         }
     })
-    win.loadFile(`modules/${moduleName}/${moduleName}.html`)
+    win.loadFile(path.join(__dirname, `modules/${moduleName}/${moduleName}.html`))
     return win
 }
 
-function createSecureHiddenWindow(moduleName) {
+function createSecureHiddenWindow(moduleName: string) {
     const win = new BrowserWindow({
         width: 200,
         height: 200,
@@ -50,10 +54,10 @@ function createSecureHiddenWindow(moduleName) {
             preload: path.join(__dirname, `modules/${moduleName}/preload_${moduleName}.js`)
         }
     })
-    win.loadFile(`modules/${moduleName}/${moduleName}.html`)
+    win.loadFile(path.join(__dirname, `modules/${moduleName}/${moduleName}.html`))
 }
 
-function createUtilityProcess(moduleName) {
+function createUtilityProcess(moduleName: string) {
     return utilityProcess.fork(path.join(__dirname, `modules/${moduleName}/${moduleName}.js`))
 }
 
@@ -84,7 +88,7 @@ ipcMain.on("main:stop-module", async (_e, v) => {
 })
 
 app.whenReady().then(() => {
-    const mainWindow = createMainWindow()
+    createMainWindow()
 
 })
 

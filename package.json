@@ -2,14 +2,17 @@
   "name": "electron",
   "version": "1.0.0",
   "description": "",
-  "main": "main.js",
+  "main": "dist/main.js",
   "scripts": {
+    "test": "copyfiles -u 1 src/**/*.html dist/ && copyfiles -u 1 src/**/*.css dist/ && tsc",
+    "build": "copyfiles -u 1 src/**/*.html dist/ && copyfiles -u 1 src/**/*.css dist/ && tsc && electron .",
     "start": "electron ."
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "copyfiles": "^2.4.1",
     "electron": "^28.2.0"
   },
   "dependencies": {
