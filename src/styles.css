@@ -22,7 +22,7 @@ body {
 main {
   display: flex;
   height: 100vh;
-  padding: 20px 20px;
+  padding: 12px;
   overflow: clip;
   box-sizing: border-box;
 }
@@ -80,13 +80,11 @@ menu::-webkit-scrollbar {
   width: 100%;
 }
 
-.output {
+samp {
   grid-column: span 3;
   background-color: black;
-}
-
-.output > span {
   color: lime;
+  padding: 10px;
 }
 
 menu > li {
@@ -101,7 +99,7 @@ menu > li {
   line-height: 60px;
   transition: line-height 100ms ease;
   cursor: pointer;
-  margin: 10px 20px 10px 0;
+  margin: 10px 0px;
   overflow: clip;
   --before-color: red;
 }
@@ -160,6 +158,10 @@ menu > li {
 h3 {
   user-select: none;
   font-family: "Lucida Console", "Courier New", monospace;
-  margin: 0;
+  margin: 0 20px 0 0;
   display: inline-block;
+}
+
+.switch {
+  display: none;
 }
