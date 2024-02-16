@@ -3,6 +3,7 @@
   --border-radius: 1.5rem;
   --bg-color: #262734;
   --main-color: #424349;
+  --before-color: red;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -51,7 +52,7 @@ menu::-webkit-scrollbar {
   padding: 11px 20px 20px 20px;
   background-color: var(--bg-color);
   box-sizing: border-box;
-  grid-template-columns: 7fr 10fr 3fr;
+  grid-template-columns: 7fr 10fr 1fr;
   grid-template-rows: 200px 1fr;
   column-gap: 20px;
   row-gap: 11px;
@@ -71,13 +72,9 @@ menu::-webkit-scrollbar {
 .setting {
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   gap: 20px;
   padding: 20px;
-}
-
-.setting > button {
-  flex: 1;
-  width: 100%;
 }
 
 samp {
@@ -101,7 +98,6 @@ menu > li {
   cursor: pointer;
   margin: 10px 0px;
   overflow: clip;
-  --before-color: red;
 }
 
 .inactive::before {
@@ -162,6 +158,93 @@ h3 {
   display: inline-block;
 }
 
-.switch {
-  display: none;
+.switch > input {
+  opacity: 0;
+  height: 0;
+  width: 0;
 }
+
+.switch {
+  width: 50px;
+  height: 90px;
+  position: relative;
+  background-color: black;
+  border-radius: 3rem;
+  top: 20px;
+  margin: 0 auto;
+  z-index: 2;
+  border: grey solid 2px;
+}
+/*
+.switch::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  position: absolute;
+  top: -40px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  border-radius: 100%;
+  background-color: var(--before-color);
+  border: 2px solid grey;
+  box-shadow: 0 0 12px var(--before-color);
+}
+*/
+
+.switch::before,
+.switch::after {
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  position: absolute;
+  text-align: center;
+  z-index: 1;
+}
+
+.switch::before {
+  content: 'ON';
+  top: -25px;
+}
+
+.switch::after {
+  content: 'OFF';
+  bottom: -25px;
+}
+
+.switch > .thumb {
+  background-color: whitesmoke;
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  border-radius: 3rem;
+  transition: transform 200ms;
+  z-index: 3;
+}
+
+.thumb::before {
+  content: '';
+  width: 70%;
+  height: 70%;
+  z-index: 4;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  position: absolute;
+  display: block;
+  margin: auto;
+  border-radius: 3rem;
+  outline: red 4px solid;
+}
+
+.switch > input:checked + .thumb {
+  transform: translateY(-40px);
+}
+
+
+
