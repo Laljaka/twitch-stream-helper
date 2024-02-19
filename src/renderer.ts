@@ -1,6 +1,6 @@
 let context: string | null = null
 
-const modules = document.querySelectorAll('.inactive')
+const modules = document.querySelectorAll('.inactive') as NodeListOf<HTMLElement>
 
 
 modules.forEach(async (module, key) => {
@@ -15,3 +15,18 @@ modules.forEach(async (module, key) => {
 })
 
 document.getElementById('websocket')!.style.setProperty('--before-color', "yellow")
+
+const cSwitches = document.querySelectorAll(".switch") as NodeListOf<HTMLElement>
+
+for (let cSwitch of cSwitches) {
+  const checkbox = cSwitch.querySelector('input') as HTMLInputElement
+  checkbox.addEventListener('change', (ev) => {
+    checkbox.disabled = true
+    const thumb = cSwitch.querySelector('.thumb') as HTMLInputElement 
+    thumb.style.setProperty('--outline', 'yellow')
+    setTimeout(() => {
+      checkbox.disabled = false
+      thumb.style.setProperty('--outline', checkbox.checked ? "lime" : "red")
+    }, 4000);
+  })
+}
