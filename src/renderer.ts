@@ -30,3 +30,10 @@ for (let cSwitch of cSwitches) {
     }, 4000);
   })
 }
+
+const fform = document.getElementById('test')! as HTMLFormElement
+
+fform.addEventListener('submit', (ev) => {
+  ev.preventDefault()
+  console.log(ev)
+})

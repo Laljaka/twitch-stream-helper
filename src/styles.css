@@ -73,11 +73,19 @@ menu {
 }
 
 .setting {
-  display: flex;
-  flex-direction: column;
+  //display: flex;
+  //flex-direction: column;
   overflow: hidden;
-  gap: 20px;
+  //gap: 20px;
   padding: 20px;
+  position: relative;
+
+  & > input[type=submit] {
+    bottom: 0;
+    right: 0;
+    position: relative;
+    float: right;
+  }
 }
 
 samp {
@@ -169,6 +177,7 @@ h3 {
 .switch {
   width: 50px;
   height: 90px;
+  display: block;
   position: relative;
   background-color: black;
   border-radius: 3rem;
@@ -240,14 +249,18 @@ h3 {
 
 input:not([type=checkbox], [type=submit], [type=button]) {
   height: 2rem;
+  border: 1px solid grey;
+  border-radius: 4px;
 
   &:focus {
-
+    outline: none;
+    border: 1px solid rgb(193, 193, 193);
   }
   &:hover {
-
+    //border: 1px solid whitesmoke;
+    box-shadow: 0 0 4px grey;
   }
   &:invalid {
-
+    border: 1px solid red;
   }
 }
