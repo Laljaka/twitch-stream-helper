@@ -4,7 +4,7 @@ import path from "node:path"
 
 import fs from "fs"
 
-let mainWindow = -1
+let mainWindow: BrowserWindow | null = null
 
 const moduleMapping = {
     'twitchpubsub': createHiddenWindow,
@@ -13,14 +13,13 @@ const moduleMapping = {
     'elevenlabs': createSecureHiddenWindow
 } as const
 
-const modules = {
-    'twitchpubsub': -1,
-    'renderer': -1,
-    'http': -1,
-    'elevenlabs': -1
+type Modules = {
+    [key: string]: BrowserWindow
 }
 
-function createMainWindow() {
+const modules: Modules = {}
+
+async function createMainWindow() {
     const win = new BrowserWindow({
         width: 800,
         minWidth: 700,
@@ -33,88 +32,73 @@ function createMainWindow() {
         }
     })
 
-    win.loadFile(path.join(__dirname, 'index.html'))
-
-    win.once('ready-to-show', () => {
-        win.show()
-    })
+    await win.loadFile(path.join(__dirname, 'index.html'))
+    win.show()
 
     win.once('closed', () => {
+        mainWindow = null
         app.quit()
     })
     return win
 }
 
-function createHiddenWindow(moduleName: string) {
+async function createHiddenWindow(moduleName: string) {
     const win = new BrowserWindow({
         width: 200,
         height: 200,
-        show: true,
+        show: false,
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false
         }
     })
-    win.loadFile(path.join(__dirname, `modules/${moduleName}/${moduleName}.html`))
+    await win.loadFile(path.join(__dirname, `modules/${moduleName}/${moduleName}.html`))
     return win
 }
 
-function createSecureHiddenWindow(moduleName: string) {
+async function createSecureHiddenWindow(moduleName: string) {
     const win = new BrowserWindow({
         width: 200,
         height: 200,
-        show: true,
+        show: false,
         webPreferences: {
             nodeIntegration: true,
             preload: path.join(__dirname, `modules/${moduleName}/preload_${moduleName}.js`)
         }
     })
-    win.loadFile(path.join(__dirname, `modules/${moduleName}/${moduleName}.html`))
+    await win.loadFile(path.join(__dirname, `modules/${moduleName}/${moduleName}.html`))
     return win
 }
 
 ipcMain.on('data', (_event, value: Data) => {
-    console.log(value)
+    modules[value.to].webContents.send('instruction', value.instruction)
 })
 
-ipcMain.handle('main:start-module', (_e, v: ModuleName) => {
-    console.log('opening process')
-    modules[v] = moduleMapping[v](v).id
-    const ref = BrowserWindow.fromId(modules[v])
+ipcMain.on('stdout', (_, value: StdOut) => {
+    if (mainWindow) mainWindow.webContents.send(value.from, value.data)
+})
+
+ipcMain.handle('main:start-module', async (_e, v: ModuleName) => {
+    modules[v] = await moduleMapping[v](v)
+    modules[v].once('closed', () => delete modules[v])
     return new Promise<void>(function(resolve, reject) {
-        if (ref) {
-            ref.once('ready-to-show', () => {
-                resolve()
-            })
-        } else {
-            reject('No such window exists')
-        }
-        
+        if (v in modules) {
+            modules[v].once('ready-to-show', () => resolve())
+        } else reject('No such window exists')
     })
 })
 
 ipcMain.handle("main:stop-module", (_e, v: ModuleName) => {
-    const ref = BrowserWindow.fromId(modules[v])
     return new Promise<void>(function(resolve, reject) {
-        if (ref) {
-            ref.once('closed', () => {
-                console.log('process closed, removing instances')
-                modules[v] = -1
-                resolve()
-            })
-            console.log('sending close to process')
-            ref.webContents.send('close')
-        } else {
-            modules[v] = -1
-            resolve()
-        }
-        
-        
+        if (v in modules) {
+            modules[v].once('closed', () => resolve())
+            modules[v].webContents.send('close')
+        } else resolve()
     })
-    
 })
 
-app.whenReady().then(() => {
-    mainWindow = createMainWindow().id
+
+app.whenReady().then(async () => {
+    mainWindow = await createMainWindow()
 })
 

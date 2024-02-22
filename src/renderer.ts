@@ -5,6 +5,7 @@ const modules = document.querySelectorAll('.inactive') as NodeListOf<HTMLElement
 declare const api: {
   startModule: (v: ModuleName) => Promise<void>,
   stopModule: (v: ModuleName) => Promise<void>
+  receive: (v: ModuleName, callback: Function) => Electron.IpcRenderer
 }
 
 modules.forEach(async (module, key) => {
@@ -23,9 +24,9 @@ const cSwitches = document.querySelectorAll(".switch") as NodeListOf<HTMLElement
 for (let cSwitch of cSwitches) {
   const checkbox = cSwitch.querySelector('input') as HTMLInputElement
   checkbox.checked = false
+  const thumb = cSwitch.querySelector('.thumb') as HTMLSpanElement 
   checkbox.addEventListener('change', async (ev) => {
     checkbox.disabled = true
-    const thumb = cSwitch.querySelector('.thumb') as HTMLSpanElement 
     thumb.style.setProperty('--outline', 'yellow')
     const moduleReference = cSwitch.parentElement!.parentElement!.id.slice(1) as ModuleName
     document.getElementById(moduleReference)!.style.setProperty('--before-color', "yellow")
@@ -48,4 +49,9 @@ const fform = document.getElementById('test') as HTMLFormElement
 fform.addEventListener('submit', (ev) => {
   ev.preventDefault()
   console.log(ev)
+})
+
+api.receive("twitchpubsub", (ev: any, v: any) => {
+  const ref = document.getElementById('-twitchpubsub')!.querySelector('samp') as HTMLElement
+  ref.append()
 })

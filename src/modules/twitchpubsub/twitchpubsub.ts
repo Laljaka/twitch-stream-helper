@@ -138,5 +138,5 @@ ipcRenderer.on('close', () => {
         socket.close()
         socket.removeEventListener("open", opened)
         socket.removeEventListener("message", message)
-        window.close()
+        window.close()    
 })
