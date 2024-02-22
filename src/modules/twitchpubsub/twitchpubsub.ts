@@ -134,11 +134,9 @@ async function message(data: MessageEvent<any>) {
     }
 }
 
-ipcRenderer.on('websocket', (_, m) => {
-    if (m === "close") {
+ipcRenderer.on('close', () => {
         socket.close()
         socket.removeEventListener("open", opened)
         socket.removeEventListener("message", message)
-        process.exit()
-    }
+        window.close()
 })

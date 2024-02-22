@@ -2,9 +2,13 @@ let context: string | null = null
 
 const modules = document.querySelectorAll('.inactive') as NodeListOf<HTMLElement>
 
+declare const api: {
+  startModule: (v: ModuleName) => Promise<void>,
+  stopModule: (v: ModuleName) => Promise<void>
+}
 
 modules.forEach(async (module, key) => {
-  module.addEventListener('click', async() => {
+  module.addEventListener('click', () => {
     document.getElementById('aaa')!.style.top = `${(70 * key) + 25}px`
     const previousReference = document.getElementById(`-${context}`)
     if (previousReference) previousReference.style.display = 'none'
@@ -14,24 +18,32 @@ modules.forEach(async (module, key) => {
   })
 })
 
-document.getElementById('websocket')!.style.setProperty('--before-color', "yellow")
-
 const cSwitches = document.querySelectorAll(".switch") as NodeListOf<HTMLElement>
 
 for (let cSwitch of cSwitches) {
   const checkbox = cSwitch.querySelector('input') as HTMLInputElement
-  checkbox.addEventListener('change', (ev) => {
+  checkbox.checked = false
+  checkbox.addEventListener('change', async (ev) => {
     checkbox.disabled = true
-    const thumb = cSwitch.querySelector('.thumb') as HTMLInputElement 
+    const thumb = cSwitch.querySelector('.thumb') as HTMLSpanElement 
     thumb.style.setProperty('--outline', 'yellow')
-    setTimeout(() => {
+    const moduleReference = cSwitch.parentElement!.parentElement!.id.slice(1) as ModuleName
+    document.getElementById(moduleReference)!.style.setProperty('--before-color', "yellow")
+    if (checkbox.checked) {
+      await api.startModule(moduleReference)
+      thumb.style.setProperty('--outline', "lime")
+      document.getElementById(moduleReference)!.style.setProperty('--before-color', "lime")
       checkbox.disabled = false
-      thumb.style.setProperty('--outline', checkbox.checked ? "lime" : "red")
-    }, 4000);
+    } else {
+      await api.stopModule(moduleReference)
+      thumb.style.setProperty('--outline', "red")
+      document.getElementById(moduleReference)!.style.setProperty('--before-color', "red")
+      checkbox.disabled = false
+    }
   })
 }
 
-const fform = document.getElementById('test')! as HTMLFormElement
+const fform = document.getElementById('test') as HTMLFormElement
 
 fform.addEventListener('submit', (ev) => {
   ev.preventDefault()

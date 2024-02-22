@@ -1,14 +1,24 @@
-import { app, BrowserWindow, ipcMain, utilityProcess } from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
 
 import path from "node:path"
 
 import fs from "fs"
 
-interface Modules {
-    [key: string]: BrowserWindow
-}
+let mainWindow = -1
 
-const modules: Modules = {}
+const moduleMapping = {
+    'twitchpubsub': createHiddenWindow,
+    'renderer': createSecureHiddenWindow,
+    'http': createHiddenWindow,
+    'elevenlabs': createSecureHiddenWindow
+} as const
+
+const modules = {
+    'twitchpubsub': -1,
+    'renderer': -1,
+    'http': -1,
+    'elevenlabs': -1
+}
 
 function createMainWindow() {
     const win = new BrowserWindow({
@@ -17,6 +27,7 @@ function createMainWindow() {
         height: 600,
         minHeight: 550,
         autoHideMenuBar: true,
+        show: false,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js')
         }
@@ -24,7 +35,11 @@ function createMainWindow() {
 
     win.loadFile(path.join(__dirname, 'index.html'))
 
-    win.on('closed', () => {
+    win.once('ready-to-show', () => {
+        win.show()
+    })
+
+    win.once('closed', () => {
         app.quit()
     })
     return win
@@ -55,40 +70,51 @@ function createSecureHiddenWindow(moduleName: string) {
         }
     })
     win.loadFile(path.join(__dirname, `modules/${moduleName}/${moduleName}.html`))
+    return win
 }
 
-function createUtilityProcess(moduleName: string) {
-    return utilityProcess.fork(path.join(__dirname, `modules/${moduleName}/${moduleName}.js`))
-}
-
-ipcMain.on('websocket', (_event, value) => {
-        if (value.type === "data") {
-            console.log(value)
-        } else {
-            console.log(value.message)
-        }
+ipcMain.on('data', (_event, value: Data) => {
+    console.log(value)
 })
 
-ipcMain.on('main:start-module', async (_e, v) => {
+ipcMain.handle('main:start-module', (_e, v: ModuleName) => {
     console.log('opening process')
-    modules[v] = createHiddenWindow(v)
-    modules[v].once('closed', () => {
-        console.log('process closed, removing instances')
-        ipcMain.removeAllListeners(v)
-        delete modules[v]
-    })
-    ipcMain.on(v, (_e, v) => {
-        console.log(v)
+    modules[v] = moduleMapping[v](v).id
+    const ref = BrowserWindow.fromId(modules[v])
+    return new Promise<void>(function(resolve, reject) {
+        if (ref) {
+            ref.once('ready-to-show', () => {
+                resolve()
+            })
+        } else {
+            reject('No such window exists')
+        }
+        
     })
 })
 
-ipcMain.on("main:stop-module", async (_e, v) => {
-    console.log('sending close to process')
-    modules[v].webContents.send('close')
+ipcMain.handle("main:stop-module", (_e, v: ModuleName) => {
+    const ref = BrowserWindow.fromId(modules[v])
+    return new Promise<void>(function(resolve, reject) {
+        if (ref) {
+            ref.once('closed', () => {
+                console.log('process closed, removing instances')
+                modules[v] = -1
+                resolve()
+            })
+            console.log('sending close to process')
+            ref.webContents.send('close')
+        } else {
+            modules[v] = -1
+            resolve()
+        }
+        
+        
+    })
+    
 })
 
 app.whenReady().then(() => {
-    createMainWindow()
-
+    mainWindow = createMainWindow().id
 })
 
