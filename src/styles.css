@@ -93,6 +93,11 @@ samp {
   background-color: black;
   color: lime;
   padding: 10px;
+  overflow: scroll;
+}
+
+samp > span {
+  display: block;
 }
 
 /* -------------MENU LAYOUT--------------- */

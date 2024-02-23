@@ -3,13 +3,25 @@ import { ipcRenderer } from 'electron/renderer'
 
 let timeout: NodeJS.Timeout
 
-let socket = new WebSocket('wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=100')
+let socket = connect()
 
 //TODO explore this reference of a websocket in the callback of the event listener
-socket.addEventListener('open', opened)
-socket.addEventListener('message', message)
+
 
 let SID = ""
+
+function connect(url = 'wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=100') {
+    const s = new WebSocket(url)
+    s.addEventListener('open', opened)
+    s.addEventListener('message', message)
+    return s
+}
+
+function disconnect(s: WebSocket) {
+    s.removeEventListener("open", opened)
+    s.removeEventListener("message", message)
+    s.close()
+}
 
 async function unsub() {
     let response: any | Response = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
@@ -63,26 +75,18 @@ async function sub() {
 
 // TODO check if reconnected websocket registers events
 function reconnect(reconnect_url = null) {
+    send('Connection lost, recconecting...')
     clearTimeout(timeout)
-    socket.removeEventListener("open", opened)
-    socket.removeEventListener("message", message)
-    socket.close()
+    disconnect(socket)
     if (reconnect_url !== null) {
-        socket = new WebSocket(reconnect_url)
-        socket.addEventListener('open', opened)
-        socket.addEventListener('message', message)
+        socket = connect(reconnect_url)
     } else {
-        socket = new WebSocket('wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=100')
-        socket.addEventListener('open', opened)
-        socket.addEventListener('message', message)
+        socket = connect()
     }
 }
 
-async function opened() {
-    ipcRenderer.send('websocket', {
-        type: "log",
-        message: "connection open"
-    })
+function opened() {
+    send("Connected to Twitch")
 }
 
 async function message(data: MessageEvent<any>) {
@@ -90,9 +94,11 @@ async function message(data: MessageEvent<any>) {
     switch (json.metadata.message_type) {
         case "session_welcome":
             if (SID !== json.payload.session.id) {
+                send('Received session ID, subscribing to events...')
                 SID = json.payload.session.id
-                console.log(await unsub())
-                console.log(await sub())
+                await unsub().catch((e) => send(e))
+                await sub().catch((e) => send(e))
+                send('Subscribed to events!')
             }
             timeout = setTimeout(reconnect, 100000)
             break
@@ -134,9 +140,12 @@ async function message(data: MessageEvent<any>) {
     }
 }
 
+
 ipcRenderer.on('close', () => {
-        socket.close()
-        socket.removeEventListener("open", opened)
-        socket.removeEventListener("message", message)
+        disconnect(socket)
         window.close()    
 })
+
+function send(data: string) {
+    ipcRenderer.send('stdout', {from: 'twitchpubsub', data: data})
+}

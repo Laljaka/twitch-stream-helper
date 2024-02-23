@@ -17,6 +17,13 @@ modules.forEach(async (module, key) => {
     const settingsReference = document.getElementById(`-${context}`)!
     settingsReference.style.display = 'grid'
   })
+  api.receive(module.id as ModuleName, (v: string) => {
+    const ref = document.getElementById(`-${module.id}`)!.querySelector('samp') as HTMLElement
+    if (ref.childElementCount > 10) ref.firstElementChild!.remove()
+    const spn = document.createElement('span')
+    spn.innerText = `TwitchPubSub:> ${v}`
+    ref.appendChild(spn)
+  })
 })
 
 const cSwitches = document.querySelectorAll(".switch") as NodeListOf<HTMLElement>
@@ -51,7 +58,4 @@ fform.addEventListener('submit', (ev) => {
   console.log(ev)
 })
 
-api.receive("twitchpubsub", (ev: any, v: any) => {
-  const ref = document.getElementById('-twitchpubsub')!.querySelector('samp') as HTMLElement
-  ref.append()
-})
+
