@@ -13,9 +13,16 @@
   body { background: #ddd; color: black; }
 }
 
+* {
+  margin: 0;
+
+  &:focus {
+    outline: none;
+  }
+}
+
 html,
 body {
-   margin: 0;
    padding: 0;
 }
 
@@ -54,7 +61,7 @@ menu {
   background-color: var(--bg-color);
   box-sizing: border-box;
   grid-template-columns: 10fr 1fr;
-  grid-template-rows: 200px 1fr;
+  grid-template-rows: 180px 1fr;
   column-gap: 20px;
   row-gap: 11px;
   display: none;
@@ -77,7 +84,7 @@ menu {
   //flex-direction: column;
   overflow: hidden;
   //gap: 20px;
-  padding: 20px;
+  padding: 10px;
   position: relative;
 
   & > input[type=submit] {
@@ -253,9 +260,10 @@ h3 {
 }
 
 input:not([type=checkbox], [type=submit], [type=button]) {
-  height: 2rem;
+  height: 1.5rem;
   border: 1px solid grey;
   border-radius: 4px;
+  width: 7rem;
 
   &:focus {
     outline: none;
@@ -269,3 +277,51 @@ input:not([type=checkbox], [type=submit], [type=button]) {
     border: 1px solid red;
   }
 }
+
+.reveal {
+  height: 1.5rem;
+  width: 1.5rem;
+  vertical-align: middle;
+  position: relative;
+  margin: 0;
+  appearance: none;
+  left: -1.5rem;
+  margin-right: -1.5rem;
+  background-image: url('../content/eye-slash.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 60%;
+  opacity: 50%;
+  //transition: opacity 50ms;
+}
+
+.reveal:hover {
+  opacity: 70%;
+}
+
+.reveal:checked {
+  background-image: url('../content/eye.svg');
+}
+
+input[type=submit] {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  border-radius: 1rem;
+}
+
+.scrollable-selector {
+  width: 10rem;
+  height: 6rem;
+  background-color: #ddd;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  white-space: nowrap;
+  display: block;
+  position: relative;
+
+  & > * {
+    display: block;
+  }
+}
+

@@ -20,9 +20,16 @@
       </menu>
       <div class="module-settings" id="-twitchpubsub">
         <fieldset class="wrapper setting"><legend>Settings</legend>
-          <form id="test">
-            <input type="password" placeholder="Client ID">
-            <input type="password" placeholder="Access Token">
+          <form action="">
+            <input type="password" placeholder="Client ID" name="clientId" required><input type="checkbox" class="reveal">
+            <input type="password" placeholder="Access Token" name="access" required><input type="checkbox" class="reveal">
+            <span class="scrollable-selector">
+              <label><input type="checkbox" name="bits">Bits</label>
+              <label><input type="checkbox" name="polls">Polls</label>
+              <label><input type="checkbox" name="cp">Channel points</label>
+              <label><input type="checkbox" name="predictions">Predictions</label>
+              <label><input type="checkbox" name="donations">Donations</label>
+            </span>
             <input type="submit">
           </form>
         </fieldset>
@@ -38,9 +45,11 @@
       </div>
       <div class="module-settings" id="-http">
         <fieldset class="wrapper setting"><legend>Settings</legend>
-          <input type="url" placeholder="Host">
-          <input type="number" placeholder="Port">
-          <input type="submit">
+          <form action="">
+            <input type="url" placeholder="Host">
+            <input type="number" placeholder="Port">
+            <input type="submit">
+          </form>
         </fieldset>
         <fieldset class="wrapper setting"><legend>Controls</legend>
           <label class="switch">
@@ -49,14 +58,16 @@
           </label>
         </fieldset>
         <samp class="wrapper">
-          <span>HTTP Server :> </span><br/>
+          <span>HTTP Server :> </span>
         </samp>
       </div>
       <div class="module-settings" id="-renderer">
         <fieldset class="wrapper setting"><legend>Settings</legend>
-          <input type="number" placeholder="Initial X rotation">
-          <input type="number" placeholder="Initial Y rotation">
-          <input type="submit">
+          <form action="">
+            <input type="number" placeholder="Initial X rotation">
+            <input type="number" placeholder="Initial Y rotation">
+            <input type="submit">
+          </form>
         </fieldset>
         <fieldset class="wrapper setting"><legend>Controls</legend>
           <label class="switch">
@@ -65,13 +76,15 @@
           </label>
         </fieldset>
         <samp class="wrapper">
-          <span>Renderer :> </span><br/>
+          <span>Renderer :> </span>
         </samp>
       </div>
       <div class="module-settings" id="-elevenlabs">
         <fieldset class="wrapper setting"><legend>Settings</legend>
-          <input type="password" placeholder="API Key">
-          <input type="submit">
+          <form action="">
+            <input type="password" placeholder="API Key"><input type="checkbox" class="reveal">
+            <input type="submit">
+          </form>
         </fieldset>
         <fieldset class="wrapper setting"><legend>Controls</legend>
           <label class="switch">
@@ -80,7 +93,7 @@
           </label>
         </fieldset>
         <samp class="wrapper">
-          <span>Elevenlabs API :> </span><br/>
+          <span>Elevenlabs API :> </span>
         </samp>
       </div>
     </main>

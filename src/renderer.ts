@@ -5,7 +5,7 @@ const modules = document.querySelectorAll('.inactive') as NodeListOf<HTMLElement
 declare const api: {
   startModule: (v: ModuleName) => Promise<void>,
   stopModule: (v: ModuleName) => Promise<void>
-  receive: (v: ModuleName, callback: Function) => Electron.IpcRenderer
+  toConsole: (v: ModuleName, callback: Function) => Electron.IpcRenderer
 }
 
 modules.forEach(async (module, key) => {
@@ -17,9 +17,9 @@ modules.forEach(async (module, key) => {
     const settingsReference = document.getElementById(`-${context}`)!
     settingsReference.style.display = 'grid'
   })
-  api.receive(module.id as ModuleName, (v: string) => {
+  api.toConsole(module.id as ModuleName, (v: string) => {
     const ref = document.getElementById(`-${module.id}`)!.querySelector('samp') as HTMLElement
-    if (ref.childElementCount > 10) ref.firstElementChild!.remove()
+    //if (ref.childElementCount > 10) ref.firstElementChild!.remove()
     const spn = document.createElement('span')
     spn.innerText = `TwitchPubSub:> ${v}`
     ref.appendChild(spn)
@@ -32,10 +32,10 @@ for (let cSwitch of cSwitches) {
   const checkbox = cSwitch.querySelector('input') as HTMLInputElement
   checkbox.checked = false
   const thumb = cSwitch.querySelector('.thumb') as HTMLSpanElement 
+  const moduleReference = cSwitch.parentElement!.parentElement!.id.slice(1) as ModuleName
   checkbox.addEventListener('change', async (ev) => {
     checkbox.disabled = true
     thumb.style.setProperty('--outline', 'yellow')
-    const moduleReference = cSwitch.parentElement!.parentElement!.id.slice(1) as ModuleName
     document.getElementById(moduleReference)!.style.setProperty('--before-color', "yellow")
     if (checkbox.checked) {
       await api.startModule(moduleReference)
@@ -51,11 +51,29 @@ for (let cSwitch of cSwitches) {
   })
 }
 
-const fform = document.getElementById('test') as HTMLFormElement
+const fformList = document.querySelectorAll('form') as NodeListOf<HTMLFormElement>
 
-fform.addEventListener('submit', (ev) => {
-  ev.preventDefault()
-  console.log(ev)
+fformList.forEach((fform) => {
+  fform.addEventListener('submit', (ev) => {
+    ev.preventDefault()
+    const ref = ev.currentTarget as HTMLFormElement
+    const ctx = ref.parentElement!.parentElement!.id
+    const lenght = ref.elements.length
+    for (let i=0; i<lenght; i++) {
+      const elem = ref.elements[i]
+      if (elem instanceof HTMLInputElement && elem.type !== 'submit' && elem.type !== 'button' && elem.className !== 'reveal') console.log(ctx, elem.name, elem.value)
+    }
+  })
+})
+
+const reveals = document.querySelectorAll('.reveal') as NodeListOf<HTMLInputElement>
+reveals.forEach((v) => {
+  v.addEventListener('change', (ev) => {
+    const ref = ev.currentTarget as HTMLInputElement
+    const prev = ref.previousElementSibling as HTMLInputElement
+    //ref.style.setProperty('--svg', ref.checked? 'url("../content/eye.svg")' : 'url("../content/eye-slash.svg")')
+    prev.type = ref.checked? 'text' : "password"
+  })
 })
 
 
