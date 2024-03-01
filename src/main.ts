@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, utilityProcess } from 'electron'
 
 import path from "node:path"
 
@@ -17,9 +17,11 @@ type Modules = {
     [key: string]: BrowserWindow
 }
 
+let storage: MultiModuleStorage
+
 const modules: Modules = {}
 
-async function createMainWindow() {
+async function createMainWindow(data: string) {
     const win = new BrowserWindow({
         width: 800,
         minWidth: 700,
@@ -28,7 +30,8 @@ async function createMainWindow() {
         autoHideMenuBar: true,
         show: false,
         webPreferences: {
-            preload: path.join(__dirname, 'preload.js')
+            preload: path.join(__dirname, 'preload.js'),
+            additionalArguments: [data]
         }
     })
 
@@ -63,11 +66,38 @@ async function createSecureHiddenWindow(moduleName: string) {
         show: false,
         webPreferences: {
             nodeIntegration: true,
-            preload: path.join(__dirname, `modules/${moduleName}/preload_${moduleName}.js`)
+            preload: path.join(__dirname, `modules/${moduleName}/${moduleName}.preload.js`)
         }
     })
     await win.loadFile(path.join(__dirname, `modules/${moduleName}/${moduleName}.html`))
     return win
+}
+
+async function readData() {
+    const proc = utilityProcess.fork(path.join(__dirname, 'data.js'), ['password', 'read'])
+    return new Promise<string>((resolve, reject) => {
+        let s: string | undefined
+        proc.once('message', (msg: string) => {
+            s = msg
+        })
+        proc.once('exit', (code) => {
+            if (code === 0 && s) resolve(s)
+            else if (code === 1) reject('There was an error reading a file')
+            else if (code === 2) reject('Somehow no work was done, something terrible has happened...')
+            else reject('Process exited gracefully but data was never there... WHAT')
+        })
+    })
+}
+
+async function writeData(d: MultiModuleStorage) {
+    const proc = utilityProcess.fork(path.join(__dirname, 'data.js'), ['password', 'write', JSON.stringify(d)])
+    return new Promise<void>((resolve, reject) => {
+        proc.once('exit', (code) => {
+            if (code === 0) resolve()
+            else if (code === 1) reject('There was an error writing a file')
+            else if (code === 2) reject('Somehow no work was done, something terrible has happened...')
+        })
+    })
 }
 
 ipcMain.on('data', (_event, value: Data) => {
@@ -97,8 +127,12 @@ ipcMain.handle("main:stop-module", (_e, v: ModuleName) => {
     })
 })
 
-
 app.whenReady().then(async () => {
-    mainWindow = await createMainWindow()
+    const temporary = await readData()
+    storage = JSON.parse(temporary) 
+    mainWindow = await createMainWindow(temporary)
+}).catch((err) => {
+    app.quit()
+    console.error(err)
 })
 
