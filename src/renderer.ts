@@ -3,6 +3,7 @@ let context: string | null = null
 const modules = document.querySelectorAll('.inactive') as NodeListOf<HTMLElement>
 
 declare const api: {
+  storage: MultiModuleStorage
   startModule: (v: ModuleName) => Promise<void>,
   stopModule: (v: ModuleName) => Promise<void>
   toConsole: (v: ModuleName, callback: Function) => Electron.IpcRenderer
@@ -17,13 +18,27 @@ modules.forEach(async (module, key) => {
     const settingsReference = document.getElementById(`-${context}`)!
     settingsReference.style.display = 'grid'
   })
+
   api.toConsole(module.id as ModuleName, (v: string) => {
     const ref = document.getElementById(`-${module.id}`)!.querySelector('samp') as HTMLElement
-    //if (ref.childElementCount > 10) ref.firstElementChild!.remove()
     const spn = document.createElement('span')
     spn.innerText = `TwitchPubSub:> ${v}`
     ref.appendChild(spn)
   })
+
+  const formToUpdate = document.getElementById(`-${module.id}`)!.querySelector('form') as HTMLFormElement
+  const len = formToUpdate.elements.length
+  for (let i =0; i < len; i++) {
+    const elem = formToUpdate.elements[i]
+    if (elem instanceof HTMLInputElement && elem.type !== 'submit' && elem.type !== 'button' && elem.className !== 'reveal') {
+      if (elem.type !== 'checkbox') {
+        if (elem.name in api.storage[module.id as keyof MultiModuleStorage]) {
+          // @ts-ignore
+          elem.value = api.storage[module.id][elem.name]
+        }
+      }
+    } 
+  }
 })
 
 const cSwitches = document.querySelectorAll(".switch") as NodeListOf<HTMLElement>
@@ -31,8 +46,8 @@ const cSwitches = document.querySelectorAll(".switch") as NodeListOf<HTMLElement
 for (let cSwitch of cSwitches) {
   const checkbox = cSwitch.querySelector('input') as HTMLInputElement
   checkbox.checked = false
-  const thumb = cSwitch.querySelector('.thumb') as HTMLSpanElement 
-  const moduleReference = cSwitch.parentElement!.parentElement!.id.slice(1) as ModuleName
+  const thumb = cSwitch.querySelector('.thumb') as HTMLSpanElement
+  const moduleReference = cSwitch.parentElement!.parentElement!.dataset['id'] as ModuleName
   checkbox.addEventListener('change', async (ev) => {
     checkbox.disabled = true
     thumb.style.setProperty('--outline', 'yellow')
@@ -61,7 +76,10 @@ fformList.forEach((fform) => {
     const lenght = ref.elements.length
     for (let i=0; i<lenght; i++) {
       const elem = ref.elements[i]
-      if (elem instanceof HTMLInputElement && elem.type !== 'submit' && elem.type !== 'button' && elem.className !== 'reveal') console.log(ctx, elem.name, elem.value)
+      if (elem instanceof HTMLInputElement && elem.type !== 'submit' && elem.type !== 'button' && elem.className !== 'reveal') {
+        if (elem.type === 'checkbox') console.log(ctx, elem.name, elem.checked)
+        else console.log(ctx, elem.name, elem.value)
+      } 
     }
   })
 })
@@ -76,4 +94,5 @@ reveals.forEach((v) => {
   })
 })
 
+//TODO: MODULES SHOULD NOT WORK WITHOUT API
 
