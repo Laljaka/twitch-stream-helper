@@ -1,5 +1,5 @@
 import { ipcRenderer, contextBridge } from "electron";
 
-contextBridge.exposeInMainWorld('rendererApi', {
+contextBridge.exposeInMainWorld('elevenlabsApi', {
     toClose: (callback: Function) => ipcRenderer.once('close', () => callback())
 })
