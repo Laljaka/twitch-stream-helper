@@ -12,13 +12,13 @@
   <body>
     <main>
       <menu>
-        <li class="inactive" id="twitchpubsub"><h3>Twitch API</h3></li>
-        <li class="inactive" id="http"><h3>HTTP server</h3></li>
-        <li class="inactive" id="renderer"><h3>Renderer</h3></li>
-        <li class="inactive" id="elevenlabs"><h3>Elevenlabs API</h3></li>
+        <li class="inactive" id="twitchpubsub" data-type="api"><h3>Twitch API</h3></li>
+        <li class="inactive" id="http" data-type="mod"><h3>HTTP server</h3></li>
+        <li class="inactive" id="renderer" data-type="mod"><h3>Renderer</h3></li>
+        <li class="inactive" id="elevenlabs" data-type="mod"><h3>Elevenlabs API</h3></li>
         <li class="active" id="aaa"></li>
       </menu>
-      <div class="module-settings" id="-twitchpubsub">
+      <div class="module-settings" id="-twitchpubsub" data-id="twitchpubsub">
         <fieldset class="wrapper setting"><legend>Settings</legend>
           <form action="">
             <input type="password" placeholder="Client ID" name="clientId" required><input type="checkbox" class="reveal">
@@ -43,11 +43,11 @@
           <span>Twitch API :> </span>
         </samp>
       </div>
-      <div class="module-settings" id="-http">
+      <div class="module-settings" id="-http" data-id="http">
         <fieldset class="wrapper setting"><legend>Settings</legend>
           <form action="">
-            <input type="url" placeholder="Host">
-            <input type="number" placeholder="Port">
+            <input type="url" placeholder="Host" name="host">
+            <input type="number" placeholder="Port" name="port">
             <input type="submit">
           </form>
         </fieldset>
@@ -61,11 +61,12 @@
           <span>HTTP Server :> </span>
         </samp>
       </div>
-      <div class="module-settings" id="-renderer">
+      <div class="module-settings" id="-renderer" data-id="renderer">
         <fieldset class="wrapper setting"><legend>Settings</legend>
           <form action="">
-            <input type="number" placeholder="Initial X rotation">
-            <input type="number" placeholder="Initial Y rotation">
+            <input type="number" placeholder="Initial X rotation" name="xrot">
+            <input type="number" placeholder="Initial Y rotation" name="yrot">
+            <input type="number" placeholder="Multiplier" name="mul">
             <input type="submit">
           </form>
         </fieldset>
@@ -79,10 +80,10 @@
           <span>Renderer :> </span>
         </samp>
       </div>
-      <div class="module-settings" id="-elevenlabs">
+      <div class="module-settings" id="-elevenlabs" data-id="elevenlabs">
         <fieldset class="wrapper setting"><legend>Settings</legend>
           <form action="">
-            <input type="password" placeholder="API Key"><input type="checkbox" class="reveal">
+            <input type="password" placeholder="API Key" name="key"><input type="checkbox" class="reveal">
             <input type="submit">
           </form>
         </fieldset>

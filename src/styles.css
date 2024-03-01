@@ -100,7 +100,11 @@ samp {
   background-color: black;
   color: lime;
   padding: 10px;
-  overflow: scroll;
+  overflow-y: scroll;
+}
+
+samp::-webkit-scrollbar {
+  width: 0;
 }
 
 samp > span {
