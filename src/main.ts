@@ -108,6 +108,11 @@ ipcMain.on('stdout', (_, value: StdOut) => {
     if (mainWindow) mainWindow.webContents.send(value.from, value.data)
 })
 
+ipcMain.on('save', (ev, from: ModuleName, data: ModuleStorage) => {
+    storage[from] = data
+    writeData(storage)
+})
+
 ipcMain.handle('main:start-module', async (_e, v: ModuleName) => {
     modules[v] = await moduleMapping[v](v)
     modules[v].once('closed', () => delete modules[v])
@@ -135,4 +140,3 @@ app.whenReady().then(async () => {
     app.quit()
     console.error(err)
 })
-

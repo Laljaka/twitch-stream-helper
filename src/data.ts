@@ -2,25 +2,7 @@ import crypto from "crypto"
 import fs from "fs"
 import path from "node:path"
 
-const defaults: MultiModuleStorage = {
-    twitchpubsub: {
-        clientId: '',
-        access: '',
-        subscribtions: {}
-    },
-    renderer: {
-        xrot: '',
-        yrot: '',
-        mul: ''
-    },
-    http: {
-        host: '',
-        port: ''
-    },
-    elevenlabs: {
-        key: ''
-    }
-}
+const defaults: MultiModuleStorage = {}
 
 const algo = 'aes-256-cbc'
 let password = process.argv[2]
@@ -29,11 +11,20 @@ const filepath = path.join(process.cwd(), 'content/storage.bin')
 
 process.exitCode = 2
 
-//TODO God damn first start handing with no storage.bin existing
+//TODO God damn first start handling with no storage.bin existing
 if (process.argv[3] === 'read') {
     fs.readFile(filepath, (err, data) => {
         if (err) {
-            process.exit(1)
+            //process.exit(1)
+            fs.open(filepath, 'w', (err, fd) => {
+                if (err) process.exit(1)
+                else {
+                    fs.writeSync(fd, encrypt(JSON.stringify(defaults)))
+                    fs.closeSync(fd)
+                    process.parentPort.postMessage(JSON.stringify(defaults))
+                    process.exit(0)
+                }
+            })
         } else {
             process.parentPort.postMessage(decrypt(data))
             process.exit(0)
@@ -41,15 +32,10 @@ if (process.argv[3] === 'read') {
     })
 } else if (process.argv[3] === 'write') {
     fs.writeFile(filepath, encrypt(process.argv[4]), (err) => {
-        if (err) {
-            process.exit(1)
-        } else {
-            process.exit(0)
-        }
+        if (err) process.exit(1)
+        else process.exit(0)
     })
-} else {
-    process.exit(2)
-}
+} else process.exit(2)
 
 function encrypt(d: string) {
     //const buff = crypto.scryptSync(password, login, 32)

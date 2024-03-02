@@ -4,9 +4,10 @@ const modules = document.querySelectorAll('.inactive') as NodeListOf<HTMLElement
 
 declare const api: {
   storage: MultiModuleStorage
-  startModule: (v: ModuleName) => Promise<void>,
+  startModule: (v: ModuleName) => Promise<void>
   stopModule: (v: ModuleName) => Promise<void>
   toConsole: (v: ModuleName, callback: Function) => Electron.IpcRenderer
+  save: (from: ModuleName, s: MultiModuleStorage) => void
 }
 
 modules.forEach(async (module, key) => {
@@ -25,21 +26,29 @@ modules.forEach(async (module, key) => {
     spn.innerText = `TwitchPubSub:> ${v}`
     ref.appendChild(spn)
   })
-
-  const formToUpdate = document.getElementById(`-${module.id}`)!.querySelector('form') as HTMLFormElement
-  const len = formToUpdate.elements.length
-  for (let i =0; i < len; i++) {
-    const elem = formToUpdate.elements[i]
-    if (elem instanceof HTMLInputElement && elem.type !== 'submit' && elem.type !== 'button' && elem.className !== 'reveal') {
-      if (elem.type !== 'checkbox') {
-        if (elem.name in api.storage[module.id as keyof MultiModuleStorage]) {
-          // @ts-ignore
-          elem.value = api.storage[module.id][elem.name]
-        }
-      }
-    } 
-  }
+  /*
+  const form = document.getElementById(`-${module.id}`)!.querySelector('form')!
+  const mod = api.storage[module.id as keyof MultiModuleStorage]
+  for (let elem of form.elements) {
+    if (elem instanceof HTMLInputElement && elem.name in mod) {
+      elem.value = mod[elem.name as keyof typeof mod]
+    }
+  }*/
 })
+
+for (let key in api.storage) {
+  const form = document.getElementById(`-${key}`)!.querySelector('form')!
+  const mod = api.storage[key as keyof MultiModuleStorage]
+  for (let name in mod) {
+    const test = mod[name]
+    const inp = form.querySelector(`[name="${name}"]`) as HTMLInputElement
+    if (typeof test === 'boolean') {
+      inp.checked = test
+    } else {
+      inp.value = test
+    }
+  }
+}
 
 const cSwitches = document.querySelectorAll(".switch") as NodeListOf<HTMLElement>
 
@@ -72,15 +81,19 @@ fformList.forEach((fform) => {
   fform.addEventListener('submit', (ev) => {
     ev.preventDefault()
     const ref = ev.currentTarget as HTMLFormElement
-    const ctx = ref.parentElement!.parentElement!.id
-    const lenght = ref.elements.length
-    for (let i=0; i<lenght; i++) {
-      const elem = ref.elements[i]
+    const ctx = ref.parentElement!.parentElement!.dataset['id']!
+    //const lenght = ref.elements.length
+    const toSend: ModuleStorage = {}
+    for (let elem of ref.elements) {
       if (elem instanceof HTMLInputElement && elem.type !== 'submit' && elem.type !== 'button' && elem.className !== 'reveal') {
-        if (elem.type === 'checkbox') console.log(ctx, elem.name, elem.checked)
-        else console.log(ctx, elem.name, elem.value)
+        if (elem.type === 'checkbox') {
+          toSend[elem.name] = elem.checked
+        } else {
+          toSend[elem.name] = elem.value
+        }
       } 
     }
+    api.save(ctx as ModuleName, toSend)
   })
 })
 
