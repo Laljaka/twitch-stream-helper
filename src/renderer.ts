@@ -62,7 +62,7 @@ for (let cSwitch of cSwitches) {
     thumb.style.setProperty('--outline', 'yellow')
     document.getElementById(moduleReference)!.style.setProperty('--before-color', "yellow")
     if (checkbox.checked) {
-      await api.startModule(moduleReference)
+      await api.startModule(moduleReference).catch((e) => console.log(e))
       thumb.style.setProperty('--outline', "lime")
       document.getElementById(moduleReference)!.style.setProperty('--before-color', "lime")
       checkbox.disabled = false
@@ -86,11 +86,8 @@ fformList.forEach((fform) => {
     const toSend: ModuleStorage = {}
     for (let elem of ref.elements) {
       if (elem instanceof HTMLInputElement && elem.type !== 'submit' && elem.type !== 'button' && elem.className !== 'reveal') {
-        if (elem.type === 'checkbox') {
-          toSend[elem.name] = elem.checked
-        } else {
-          toSend[elem.name] = elem.value
-        }
+        if (elem.type === 'checkbox') toSend[elem.name] = elem.checked
+        else toSend[elem.name] = elem.value
       } 
     }
     api.save(ctx as ModuleName, toSend)

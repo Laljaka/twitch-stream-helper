@@ -4,7 +4,7 @@ import path from "node:path"
 
 import fs from "fs"
 
-let mainWindow: BrowserWindow | null = null
+let mainWindow: BrowserWindow | undefined
 
 const moduleMapping = {
     'twitchpubsub': createHiddenWindow,
@@ -14,7 +14,7 @@ const moduleMapping = {
 } as const
 
 type Modules = {
-    [key: string]: BrowserWindow
+    [key in ModuleName]?: BrowserWindow
 }
 
 let storage: MultiModuleStorage
@@ -36,40 +36,45 @@ async function createMainWindow(data: string) {
     })
 
     await win.loadFile(path.join(__dirname, 'index.html'))
-    win.show()
 
-    win.once('closed', () => {
-        mainWindow = null
-        app.quit()
-    })
+    win.once('closed', () => app.quit())
+
+    win.once('ready-to-show', () => win.show())
+
     return win
 }
 
-async function createHiddenWindow(moduleName: string) {
+async function createHiddenWindow(moduleName: ModuleName) {
     const win = new BrowserWindow({
         width: 200,
         height: 200,
         show: false,
         webPreferences: {
             nodeIntegration: true,
-            contextIsolation: false
+            contextIsolation: false,
+            additionalArguments: [JSON.stringify(storage[moduleName])]
         }
     })
     await win.loadFile(path.join(__dirname, `modules/${moduleName}/${moduleName}.html`))
     return win
 }
 
-async function createSecureHiddenWindow(moduleName: string) {
+async function createSecureHiddenWindow(moduleName: ModuleName) {
     const win = new BrowserWindow({
-        width: 200,
-        height: 200,
+        width: 800,
+        height: 600,
         show: false,
+        autoHideMenuBar: true,
         webPreferences: {
             nodeIntegration: true,
-            preload: path.join(__dirname, `modules/${moduleName}/${moduleName}.preload.js`)
+            preload: path.join(__dirname, `modules/${moduleName}/${moduleName}.preload.js`),
+            //additionalArguments: [JSON.stringify(storage[moduleName])]
         }
     })
     await win.loadFile(path.join(__dirname, `modules/${moduleName}/${moduleName}.html`))
+    
+    win.once('ready-to-show', () => win.show())
+
     return win
 }
 
@@ -101,7 +106,8 @@ async function writeData(d: MultiModuleStorage) {
 }
 
 ipcMain.on('data', (_event, value: Data) => {
-    modules[value.to].webContents.send('instruction', value.instruction)
+    const ref = modules[value.to]
+    if (ref) ref.webContents.send('instruction', value.instruction)
 })
 
 ipcMain.on('stdout', (_, value: StdOut) => {
@@ -115,10 +121,10 @@ ipcMain.on('save', (ev, from: ModuleName, data: ModuleStorage) => {
 
 ipcMain.handle('main:start-module', async (_e, v: ModuleName) => {
     modules[v] = await moduleMapping[v](v)
-    modules[v].once('closed', () => delete modules[v])
+    modules[v]!.once('closed', () => delete modules[v])
     return new Promise<void>(function(resolve, reject) {
         if (v in modules) {
-            modules[v].once('ready-to-show', () => resolve())
+            modules[v]!.once('ready-to-show', () => resolve())
         } else reject('No such window exists')
     })
 })
@@ -126,8 +132,8 @@ ipcMain.handle('main:start-module', async (_e, v: ModuleName) => {
 ipcMain.handle("main:stop-module", (_e, v: ModuleName) => {
     return new Promise<void>(function(resolve, reject) {
         if (v in modules) {
-            modules[v].once('closed', () => resolve())
-            modules[v].webContents.send('close')
+            modules[v]!.once('closed', () => resolve())
+            modules[v]!.webContents.send('close')
         } else resolve()
     })
 })
