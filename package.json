@@ -9,11 +9,15 @@
     "start": "electron ."
   },
   "keywords": [],
-  "author": "",
+  "author": "Laljaka",
   "license": "ISC",
   "devDependencies": {
+    "@types/three": "^0.162.0",
     "copyfiles": "^2.4.1",
     "electron": "^28.2.0",
     "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "three": "^0.162.0"
   }
 }
