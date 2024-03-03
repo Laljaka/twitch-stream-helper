@@ -8,10 +8,10 @@ let mainWindow: BrowserWindow | undefined
 
 const moduleMapping = {
     'twitchpubsub': createHiddenWindow,
-    'renderer': createSecureHiddenWindow,
+    'renderer': createWindow,
     'http': createHiddenWindow,
-    'elevenlabs': createSecureHiddenWindow
-} as const
+    'elevenlabs': createWindow
+} as const 
 
 type Modules = {
     [key in ModuleName]?: BrowserWindow
@@ -21,7 +21,7 @@ let storage: MultiModuleStorage
 
 const modules: Modules = {}
 
-async function createMainWindow(data: string) {
+function createMainWindow(data: string) {
     const win = new BrowserWindow({
         width: 800,
         minWidth: 700,
@@ -35,7 +35,7 @@ async function createMainWindow(data: string) {
         }
     })
 
-    await win.loadFile(path.join(__dirname, 'index.html'))
+    win.loadFile(path.join(__dirname, 'index.html'))
 
     win.once('closed', () => app.quit())
 
@@ -44,7 +44,7 @@ async function createMainWindow(data: string) {
     return win
 }
 
-async function createHiddenWindow(moduleName: ModuleName) {
+function createHiddenWindow(moduleName: ModuleName) {
     const win = new BrowserWindow({
         width: 200,
         height: 200,
@@ -55,11 +55,13 @@ async function createHiddenWindow(moduleName: ModuleName) {
             additionalArguments: [JSON.stringify(storage[moduleName])]
         }
     })
-    await win.loadFile(path.join(__dirname, `modules/${moduleName}/${moduleName}.html`))
+
+    win.loadFile(path.join(__dirname, `modules/${moduleName}/${moduleName}.html`))
+
     return win
 }
 
-async function createSecureHiddenWindow(moduleName: ModuleName) {
+function createWindow(moduleName: ModuleName) {
     const win = new BrowserWindow({
         width: 800,
         height: 600,
@@ -67,18 +69,20 @@ async function createSecureHiddenWindow(moduleName: ModuleName) {
         autoHideMenuBar: true,
         webPreferences: {
             nodeIntegration: true,
-            preload: path.join(__dirname, `modules/${moduleName}/${moduleName}.preload.js`),
-            //additionalArguments: [JSON.stringify(storage[moduleName])]
+            contextIsolation: false,
+            //preload: path.join(__dirname, `modules/${moduleName}/${moduleName}.preload.js`),
+            additionalArguments: [JSON.stringify(storage[moduleName])]
         }
     })
-    await win.loadFile(path.join(__dirname, `modules/${moduleName}/${moduleName}.html`))
-    
-    win.once('ready-to-show', () => win.show())
 
+    win.loadFile(path.join(__dirname, `modules/${moduleName}/${moduleName}.html`))
+
+    win.once('ready-to-show', () => win.show())
+    
     return win
 }
 
-async function readData() {
+function readData() {
     const proc = utilityProcess.fork(path.join(__dirname, 'data.js'), ['password', 'read'])
     return new Promise<string>((resolve, reject) => {
         let s: string | undefined
@@ -94,7 +98,7 @@ async function readData() {
     })
 }
 
-async function writeData(d: MultiModuleStorage) {
+function writeData(d: MultiModuleStorage) {
     const proc = utilityProcess.fork(path.join(__dirname, 'data.js'), ['password', 'write', JSON.stringify(d)])
     return new Promise<void>((resolve, reject) => {
         proc.once('exit', (code) => {
@@ -119,13 +123,11 @@ ipcMain.on('save', (ev, from: ModuleName, data: ModuleStorage) => {
     writeData(storage)
 })
 
-ipcMain.handle('main:start-module', async (_e, v: ModuleName) => {
-    modules[v] = await moduleMapping[v](v)
-    modules[v]!.once('closed', () => delete modules[v])
+ipcMain.handle('main:start-module', (_e, v: ModuleName) => {
     return new Promise<void>(function(resolve, reject) {
-        if (v in modules) {
-            modules[v]!.once('ready-to-show', () => resolve())
-        } else reject('No such window exists')
+        modules[v] = moduleMapping[v](v)
+        modules[v]!.once('closed', () => delete modules[v])
+        modules[v]!.once('ready-to-show', () => resolve())
     })
 })
 
@@ -141,7 +143,7 @@ ipcMain.handle("main:stop-module", (_e, v: ModuleName) => {
 app.whenReady().then(async () => {
     const temporary = await readData()
     storage = JSON.parse(temporary) 
-    mainWindow = await createMainWindow(temporary)
+    mainWindow = createMainWindow(temporary)
 }).catch((err) => {
     app.quit()
     console.error(err)

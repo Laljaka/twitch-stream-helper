@@ -1,7 +1,5 @@
-declare const elevenlabsApi: {
-    toClose: (callback: Function) => Electron.IpcRenderer
-}
+import { ipcRenderer } from 'electron'
 
-elevenlabsApi.toClose(() => {
+ipcRenderer.once('close', () => {
     window.close()
 })
