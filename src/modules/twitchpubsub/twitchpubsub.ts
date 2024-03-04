@@ -1,12 +1,10 @@
-import { ipcRenderer } from 'electron/renderer'
-
+const { ipcRenderer } = require('electron/renderer')
 
 let timeout: NodeJS.Timeout
 
 let socket = connect()
 
 //TODO explore this reference of a websocket in the callback of the event listener
-
 
 let SID = ""
 

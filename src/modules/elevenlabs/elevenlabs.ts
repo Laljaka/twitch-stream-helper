@@ -1,5 +1,2 @@
-const { ipcRenderer } = require('electron')
+window.elevenlabsApi.toClose(() => window.close())
 
-ipcRenderer.once('close', () => {
-    window.close()
-})

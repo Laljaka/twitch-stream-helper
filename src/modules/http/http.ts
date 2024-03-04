@@ -1,4 +1,4 @@
-import { ipcRenderer } from 'electron/renderer';
+const { ipcRenderer } = require('electron/renderer')
 import http from 'http';
 
 const host = "localhost"

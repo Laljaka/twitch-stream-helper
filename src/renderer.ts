@@ -2,14 +2,6 @@ let context: string | null = null
 
 const modules = document.querySelectorAll('.inactive') as NodeListOf<HTMLElement>
 
-declare const api: {
-  storage: MultiModuleStorage
-  startModule: (v: ModuleName) => Promise<void>
-  stopModule: (v: ModuleName) => Promise<void>
-  toConsole: (v: ModuleName, callback: Function) => Electron.IpcRenderer
-  save: (from: ModuleName, s: MultiModuleStorage) => void
-}
-
 modules.forEach(async (module, key) => {
   module.addEventListener('click', () => {
     document.getElementById('aaa')!.style.top = `${(70 * key) + 25}px`
@@ -20,7 +12,7 @@ modules.forEach(async (module, key) => {
     settingsReference.style.display = 'grid'
   })
 
-  api.toConsole(module.id as ModuleName, (v: string) => {
+  window.mainApi.toConsole(module.id as ModuleName, (v: string) => {
     const ref = document.getElementById(`-${module.id}`)!.querySelector('samp') as HTMLElement
     const spn = document.createElement('span')
     spn.innerText = `TwitchPubSub:> ${v}`
@@ -36,9 +28,9 @@ modules.forEach(async (module, key) => {
   }*/
 })
 
-for (let key in api.storage) {
+for (let key in window.mainApi.storage) {
   const form = document.getElementById(`-${key}`)!.querySelector('form')!
-  const mod = api.storage[key as keyof MultiModuleStorage]
+  const mod = window.mainApi.storage[key as keyof MultiModuleStorage]
   for (let name in mod) {
     const test = mod[name]
     const inp = form.querySelector(`[name="${name}"]`) as HTMLInputElement
@@ -62,12 +54,12 @@ for (let cSwitch of cSwitches) {
     thumb.style.setProperty('--outline', 'yellow')
     document.getElementById(moduleReference)!.style.setProperty('--before-color', "yellow")
     if (checkbox.checked) {
-      await api.startModule(moduleReference).catch((e) => console.log(e))
+      await window.mainApi.startModule(moduleReference).catch((e) => console.log(e))
       thumb.style.setProperty('--outline', "lime")
       document.getElementById(moduleReference)!.style.setProperty('--before-color', "lime")
       checkbox.disabled = false
     } else {
-      await api.stopModule(moduleReference)
+      await window.mainApi.stopModule(moduleReference)
       thumb.style.setProperty('--outline', "red")
       document.getElementById(moduleReference)!.style.setProperty('--before-color', "red")
       checkbox.disabled = false
@@ -90,7 +82,7 @@ fformList.forEach((fform) => {
         else toSend[elem.name] = elem.value
       } 
     }
-    api.save(ctx as ModuleName, toSend)
+    window.mainApi.save(ctx as ModuleName, toSend)
   })
 })
 

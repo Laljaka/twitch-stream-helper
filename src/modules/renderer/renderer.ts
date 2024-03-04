@@ -1,12 +1,10 @@
 import * as THREE from "three";
 import { OBJLoader } from "three/addons";
-const { ipcRenderer } = require('electron')
 
-ipcRenderer.on('close', () => {
-    window.close()
-})
+window.rendererApi.toClose(() => window.close())
 
 const scene = new THREE.Scene()
+scene.background = new THREE.Color(0x00ff00)
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
 const renderer = new THREE.WebGLRenderer({canvas: document.getElementById('3D') as HTMLCanvasElement})
 renderer.setSize(window.innerWidth, window.innerHeight)
@@ -17,11 +15,11 @@ const mtlload = new THREE.TextureLoader()
 let clock = new THREE.Clock();
 let delta = 0;
 // 30 fps
-let interval = 1 / 20;
+let interval = 1 / 30;
 
 camera.position.z = 3;
 
-const light = new THREE.AmbientLight( 0xffffff ); // soft white light
+const light = new THREE.AmbientLight( 0xffffff );
 scene.add( light );
 
 mtlload.load('../../../content/rat_albedo.png', (texture) => {

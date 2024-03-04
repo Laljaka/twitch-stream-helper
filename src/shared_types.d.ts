@@ -20,3 +20,19 @@ type MultiModuleStorage = {
 }
 
 //type ModuleName = keyof MultiModuleStorage
+
+interface Window {
+    elevenlabsApi: {
+        toClose: (callback: Function) => void
+    }
+    rendererApi: {
+        toClose: (callback: Function) => void
+    }
+    mainApi: {
+        storage: MultiModuleStorage
+        startModule: (v: ModuleName) => Promise<void>
+        stopModule: (v: ModuleName) => Promise<void>
+        toConsole: (v: ModuleName, callback: Function) => void
+        save: (from: ModuleName, s: MultiModuleStorage) => void
+      }
+}
