@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron/renderer'
+const { contextBridge, ipcRenderer } = require('electron/renderer')
 
 const storage = JSON.parse(process.argv.slice(-1)[0]) as MultiModuleStorage
 

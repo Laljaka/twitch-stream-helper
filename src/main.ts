@@ -2,8 +2,6 @@ import { app, BrowserWindow, ipcMain, utilityProcess } from 'electron'
 
 import path from "node:path"
 
-import fs from "fs"
-
 let mainWindow: BrowserWindow | undefined
 
 const moduleMapping = {
@@ -21,6 +19,8 @@ let storage: MultiModuleStorage
 
 const modules: Modules = {}
 
+const __dirname = path.join(process.cwd(), '/dist')
+
 function createMainWindow(data: string) {
     const win = new BrowserWindow({
         width: 800,
@@ -30,7 +30,7 @@ function createMainWindow(data: string) {
         autoHideMenuBar: true,
         show: false,
         webPreferences: {
-            preload: path.join(__dirname, 'preload.js'),
+            preload: path.join(__dirname, 'preload.cjs'),
             additionalArguments: [data]
         }
     })
@@ -68,8 +68,9 @@ function createWindow(moduleName: ModuleName) {
         show: false,
         autoHideMenuBar: true,
         webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false,
+            //nodeIntegration: true,
+            //contextIsolation: false,
+            preload: path.join(__dirname, `modules/${moduleName}/${moduleName}.preload.cjs`),
             //preload: path.join(__dirname, `modules/${moduleName}/${moduleName}.preload.js`),
             additionalArguments: [JSON.stringify(storage[moduleName])]
         }
