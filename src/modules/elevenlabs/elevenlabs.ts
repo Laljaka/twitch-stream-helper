@@ -47,11 +47,13 @@ async function task(callback: Function, args: any) {
     audio.play()
     imgsrc.src = "../../../content/speaker.svg"
 
+    let toSkip = false
+
     async function pump(): Promise<any> {
         let toAdd = arrayBuffer.shift()
         if (!toAdd) {
             const {done, value} = await reader.read()
-            if (done) {
+            if (done || toSkip) {
                 source.endOfStream()
                 return 
             }
@@ -69,11 +71,18 @@ async function task(callback: Function, args: any) {
         })
         return await pump()         
         }
-    audio.addEventListener('ended', () => {
+    audio.onended = () => {
         source.removeSourceBuffer(buffer)
         imgsrc.src = "../../../content/nospeaker.svg"
         callback()
-    })
+    }
+    skip.onclick = () => {
+        toSkip = true
+        audio.onended = null
+        source.removeSourceBuffer(buffer)
+        imgsrc.src = "../../../content/nospeaker.svg"
+        callback()
+    }
     return await pump()
 }
 
@@ -81,12 +90,13 @@ const controls = document.getElementById('controls') as HTMLInputElement
 
 const imgsrc = document.querySelector('img')!
 
+const skip = document.querySelector('button')!
+
 controls.addEventListener('input', () => {
     audio.volume = parseFloat(controls.value) / 100
 })
 
-//const url = "https://rr4---sn-gvnuxaxjvh-c35d.googlevideo.com/videoplayback?expire=1709873140&ei=lEPqZZuBKOihsfIP19GbuAk&ip=191.101.61.250&id=o-AElUYZ05d47GNyvbWpOoyg8SqVlSOrGjacc7SRofq9Sr&itag=140&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&spc=UWF9f8hOQAa7XuGxZMfwBZtAIehgvb_D56lurlXaXia3Isg&vprv=1&svpuc=1&mime=audio%2Fmp4&gir=yes&clen=200588287&dur=12394.277&lmt=1708709558249128&keepalive=yes&fexp=24007246&c=ANDROID&txp=4432434&sparams=expire%2Cei%2Cip%2Cid%2Citag%2Csource%2Crequiressl%2Cxpc%2Cspc%2Cvprv%2Csvpuc%2Cmime%2Cgir%2Cclen%2Cdur%2Clmt&sig=AJfQdSswRgIhAKoJf3Mzq_mHC8utti0P8CrGGDd0hmfNnHwI02q3Ve9tAiEAhzrOSTHqll-jwMAyueZnW2oNsRynhWKMPJHjIte_HB4%3D&redirect_counter=1&rm=sn-n4vlr7l&req_id=354a700a38cea3ee&cms_redirect=yes&ipbypass=yes&mh=7s&mip=90.154.70.195&mm=31&mn=sn-gvnuxaxjvh-c35d&ms=au&mt=1709851272&mv=m&mvi=4&pl=23&lsparams=ipbypass,mh,mip,mm,mn,ms,mv,mvi,pl&lsig=APTiJQcwRQIhAN9hZYH2B47E58qsElQTPEZbj5STgm9BUhzrySsgHtMgAiBbUh-qRq8iMU7Yrkt1AP2PN8RmV9Qryjo1cyFqBdMOMQ%3D%3D"
-//const url = 'https://w3.tuberipper.com/download/mp3?_k=4e860bc09a3ee53ec213797d17a84cac'
+
 const url = 'http://localhost:8000/videoplayback.mp4'
 const headers = {
     "Accept": "audio/mpeg",
@@ -113,4 +123,8 @@ source.addEventListener('sourceopen', async () => {
 })
 
 window.elevenlabsApi.onClose(() => window.close())
+
+window.addEventListener('beforeunload', (ev) => {
+    console.log('HERE BE VOLUME SAVING')
+})
 
