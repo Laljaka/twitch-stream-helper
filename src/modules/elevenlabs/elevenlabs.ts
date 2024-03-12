@@ -39,21 +39,25 @@ async function task(callback: Function, args: any) {
     const arrayBuffer: Array<Uint8Array> = []
     const response = await fetch(url, {
         method: 'GET',
-        //headers: headers,
-        //body: JSON.stringify(data)
+        headers: headers,
+        body: JSON.stringify({text: args,model_id: "eleven_multilingual_v2"})
     })
     const reader = response.body!.getReader()
-    const buffer = source.addSourceBuffer('audio/mp4;codecs="mp4a.40.2"')
+    const buffer = source.addSourceBuffer('audio/mpeg')
     audio.play()
     imgsrc.src = "../../../content/speaker.svg"
 
     let toSkip = false
 
     async function pump(): Promise<any> {
+        if (toSkip) {
+            source.endOfStream()
+            return 
+        }
         let toAdd = arrayBuffer.shift()
         if (!toAdd) {
             const {done, value} = await reader.read()
-            if (done || toSkip) {
+            if (done) {
                 source.endOfStream()
                 return 
             }
@@ -97,7 +101,7 @@ controls.addEventListener('input', () => {
 })
 
 
-const url = 'http://localhost:8000/videoplayback.mp4'
+const url = 'https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM/stream'
 const headers = {
     "Accept": "audio/mpeg",
     "Content-Type": "application/json",
@@ -127,4 +131,7 @@ window.elevenlabsApi.onClose(() => window.close())
 window.addEventListener('beforeunload', (ev) => {
     console.log('HERE BE VOLUME SAVING')
 })
+
+queue.addTask((callback: Function) => task(callback, 'Testing 1'))
+queue.addTask((callback: Function) => task(callback, 'Testing 2 electric boogaloo'))
 
