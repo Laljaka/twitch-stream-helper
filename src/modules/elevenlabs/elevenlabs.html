@@ -4,12 +4,16 @@
     <meta charset="UTF-8">
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; connect-src 'self' wss://eventsub.wss.twitch.tv/ https://api.twitch.tv/"
+      content="default-src 'self' blob:; script-src 'self'; connect-src 'self' https://api.elevenlabs.io/ http://localhost:8000/ https://rr4---sn-gvnuxaxjvh-c35d.googlevideo.com/ https://w3.tuberipper.com/"
     />
     <title>Title</title>
+    <link rel="stylesheet" type="text/css" href="./elevenlabs.css">
 </head>
 <body>
-
+  <audio src=""></audio>
+  <img src="../../../content/nospeaker.svg" alt="an svg">
+  <input type="range" id="controls">
+  <button>Skip</button>
 </body>
 <script type="module" src="./elevenlabs.js"></script>
 </html>
