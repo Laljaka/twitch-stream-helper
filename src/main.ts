@@ -2,7 +2,7 @@ import { app, BrowserWindow, ipcMain, utilityProcess, safeStorage } from 'electr
 import fs from 'node:fs'
 import path from "node:path"
 
-let mainWindow: BrowserWindow | undefined
+let mainWindow: BrowserWindow
 
 const moduleMapping = {
     'twitchpubsub': createHiddenWindow,
@@ -102,6 +102,13 @@ function readData() {
             }
         })
     })
+}
+
+function registerModule(moduleName: ModuleName) {
+    ipcMain.on(`${moduleName}:readyState`, (ev, args: boolean) => {
+        mainWindow.webContents.send(`${moduleName}:readyState`, args)
+    })
+    
 }
 
 function writeData(d: MultiModuleStorage) {
