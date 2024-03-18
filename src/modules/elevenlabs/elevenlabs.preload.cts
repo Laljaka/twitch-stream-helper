@@ -9,5 +9,6 @@ contextBridge.exposeInMainWorld('elevenlabsApi', {
     credentials: creds,
     onTask: (callback: Function) => {
         ipcRenderer.on('task', (_e, args) => callback(args))
-    }
+    },
+    stdout: (args: string) => ipcRenderer.send('stdout', args)
 })
