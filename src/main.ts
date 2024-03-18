@@ -1,5 +1,5 @@
-import { app, BrowserWindow, ipcMain, utilityProcess } from 'electron'
-
+import { app, BrowserWindow, ipcMain, utilityProcess, safeStorage } from 'electron'
+import fs from 'node:fs'
 import path from "node:path"
 
 let mainWindow: BrowserWindow | undefined
@@ -20,6 +20,7 @@ let storage: MultiModuleStorage
 const modules: Modules = {}
 
 const __dirname = path.join(process.cwd(), '/dist')
+const __filepath = path.join(process.cwd(), 'content/storage.bin')
 
 function createMainWindow(data: string) {
     const win = new BrowserWindow({
@@ -84,28 +85,30 @@ function createWindow(moduleName: ModuleName) {
 }
 
 function readData() {
-    const proc = utilityProcess.fork(path.join(__dirname, 'data.js'), ['password', 'read'])
-    return new Promise<string>((resolve, reject) => {
-        let s: string | undefined
-        proc.once('message', (msg: string) => {
-            s = msg
-        })
-        proc.once('exit', (code) => {
-            if (code === 0 && s) resolve(s)
-            else if (code === 1) reject('There was an error reading a file')
-            else if (code === 2) reject('Somehow no work was done, something terrible has happened...')
-            else reject('Process exited gracefully but data was never there... WHAT')
+    return new Promise<string>((res, rej) => {
+        fs.readFile(__filepath, (err1, data) => {
+            if (err1) {
+                //process.exit(1)
+                fs.open(__filepath, 'w', (err2, fd) => {
+                    if (err2) rej(`Could not open the old file nor create a new one -- ${err1} + ${err2}`)
+                    else {
+                        fs.writeSync(fd, safeStorage.encryptString(JSON.stringify({})))
+                        fs.closeSync(fd)
+                        res(JSON.stringify({}))
+                    }
+                })
+            } else {
+                res(safeStorage.decryptString(data))
+            }
         })
     })
 }
 
 function writeData(d: MultiModuleStorage) {
-    const proc = utilityProcess.fork(path.join(__dirname, 'data.js'), ['password', 'write', JSON.stringify(d)])
-    return new Promise<void>((resolve, reject) => {
-        proc.once('exit', (code) => {
-            if (code === 0) resolve()
-            else if (code === 1) reject('There was an error writing a file')
-            else if (code === 2) reject('Somehow no work was done, something terrible has happened...')
+    return new Promise<void>((res, rej) => {
+        fs.writeFile(__filepath, safeStorage.encryptString(JSON.stringify(d)), (err) => {
+            if (err) rej('How?')
+            else res()
         })
     })
 }
@@ -121,7 +124,6 @@ ipcMain.on('stdout', (_, value: StdOut) => {
 
 ipcMain.on('save', (ev, from: ModuleName, data: ModuleStorage) => {
     storage[from] = data
-    writeData(storage)
 })
 
 ipcMain.handle('main:start-module', (_e, v: ModuleName) => {
@@ -141,11 +143,26 @@ ipcMain.handle("main:stop-module", (_e, v: ModuleName) => {
     })
 })
 
+app.once('before-quit', async (ev) => {
+    ev.preventDefault()
+    await writeData(storage)
+    app.quit()
+})
+
+
+app.on('window-all-closed', () => console.log('all closed'))
+
+
+
+
+
+
 app.whenReady().then(async () => {
     const temporary = await readData()
     storage = JSON.parse(temporary) 
     mainWindow = createMainWindow(temporary)
 }).catch((err) => {
-    app.quit()
     console.error(err)
+    app.quit()
+    
 })
