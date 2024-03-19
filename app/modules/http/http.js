@@ -1,8 +1,9 @@
 const { ipcRenderer } = require('electron/renderer')
-import Http from 'node:http'
-const http: typeof Http = require('node:http')
-import Fs from 'node:fs/promises'
-const fs: typeof Fs = require('node:fs/promises')
+//import http from 'node:http'
+const http = require('node:http')
+//import fs from 'node:fs/promises'
+const fs = require('node:fs/promises')
+
 
 const host = "localhost"
 const port = 6969
@@ -16,7 +17,7 @@ const reqMap = {
     '/predictions': ["text/html", fs.readFile(`${__dir}/pages/predictions.html`)],
     '/predictions.cjs': ["text/javascript", fs.readFile(`${__dir}/pages/predictions.cjs`)],
     '/predictions.css': ["text/css", fs.readFile(`${__dir}/pages/predictions.css`)],
-} as const
+} 
 
 const server = http.createServer((req, res) => {
     if (!req.url) {
@@ -24,7 +25,7 @@ const server = http.createServer((req, res) => {
         res.end("Nothing to see here")
     } else if (req.url in reqMap) {
         if (req.method === 'GET') {
-            const ref = reqMap[req.url as keyof typeof reqMap]
+            const ref = reqMap[req.url]
             ref[1].then((data) => {
                 res.setHeader("Content-type", ref[0])
                 res.writeHead(200)

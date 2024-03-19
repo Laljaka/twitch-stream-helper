@@ -1,6 +1,7 @@
 const { ipcRenderer } = require('electron/renderer')
 
-let timeout: NodeJS.Timeout
+/** @type {NodeJS.Timeout} */
+let timeout
 
 let socket = connect()
 
@@ -15,14 +16,15 @@ function connect(url = 'wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_second
     return s
 }
 
-function disconnect(s: WebSocket) {
+/** @param {WebSocket} s  */
+function disconnect(s) {
     s.removeEventListener("open", opened)
     s.removeEventListener("message", message)
     s.close()
 }
 
 async function unsub() {
-    let response: any | Response = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
+    const raw = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
         method: "GET",
         headers: {
             "Authorization": "Bearer ",
@@ -31,7 +33,7 @@ async function unsub() {
         }
 
     })
-    response = await response.json()
+    const response = await raw.json()
     if (response.total !== 0) {
         for (let subs of response.data) {
             await fetch(`https://api.twitch.tv/helix/eventsub/subscriptions?id=${subs.id}`, {
@@ -87,7 +89,8 @@ function opened() {
     send("Connected to Twitch")
 }
 
-async function message(data: MessageEvent<any>) {
+/** @param {MessageEvent<any>} data  */
+async function message(data) {
     let json = JSON.parse(data.data)
     switch (json.metadata.message_type) {
         case "session_welcome":
@@ -144,6 +147,6 @@ ipcRenderer.on('close', () => {
         window.close()    
 })
 
-function send(data: string) {
+function send(data) {
     ipcRenderer.send('stdout', {from: 'twitchpubsub', data: data})
 }

@@ -1,4 +1,4 @@
-const elem = document.querySelector('div')!
+const elem = document.querySelector('div')
 
 setInterval(() => {
     elem.innerText = window.location.host

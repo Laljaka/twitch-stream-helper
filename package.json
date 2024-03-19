@@ -3,10 +3,8 @@
   "version": "1.0.0",
   "description": "",
   "type": "module",
-  "main": "dist/main.js",
+  "main": "app/main.js",
   "scripts": {
-    "test": "copyfiles -u 1 src/**/*.html dist/ && copyfiles -u 1 src/**/*.css dist/ && tsc",
-    "build": "copyfiles -u 1 src/**/*.html dist/ && copyfiles -u 1 src/**/*.css dist/ && tsc && electron .",
     "start": "electron ."
   },
   "keywords": [],

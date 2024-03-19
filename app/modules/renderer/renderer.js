@@ -1,16 +1,6 @@
 import * as THREE from "three";
 import { OBJLoader } from "three/addons";
 
-declare global {
-    interface Window {
-        rendererApi: {
-            toClose: (callback: Function) => void
-            stdout: (message: string) => void
-            onData: (callback: Function) => void
-        }
-    }
-}
-
 window.rendererApi.toClose(() => window.close())
 
 const scene = new THREE.Scene()
@@ -43,7 +33,7 @@ scene.add( light );
 let xrot = 0.005
 let yrot = 0.005
 
-window.rendererApi.onData((args: any) => {
+window.rendererApi.onData((args) => {
     xrot = parseFloat(args)
 })
 

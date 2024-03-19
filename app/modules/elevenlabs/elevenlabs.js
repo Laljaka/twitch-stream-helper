@@ -1,28 +1,16 @@
-declare global {
-    interface Window {
-        elevenlabsApi: {
-            onClose: (callback: Function) => void
-            credentials : ModuleStorage
-            onTask: (callback: Function) => void
-            stdout: (args: string) => void
-        }
-    }
-}
-
-interface TaskWrapper {
-    (): Promise<void>
-}
-
 class TaskQueue {
-    protected list: Array<TaskWrapper>
-    protected onTask: boolean
+    /** @type {Array<import("../../shared_types.d.ts").TaskWrapper>} @protected */
+    list
+    /** @protected */
+    onTask
 
     constructor() {
         this.list = []
         this.onTask = false
     }
 
-    protected async execute() {
+    /** @protected */
+    async execute() {
         const todo = this.list.shift()
         if (todo) {
             await todo().catch((err) => window.elevenlabsApi.stdout(`An error has occured: ${err}`))
@@ -30,7 +18,11 @@ class TaskQueue {
         } else this.onTask = false
     }
     
-    public addTask(callback: TaskWrapper) {
+    /**
+     * @param {import("../../shared_types.d.ts").TaskWrapper} callback 
+     * @public
+     */
+    addTask(callback) {
         this.list.push(callback)
         if (this.onTask) return
         this.onTask = true
@@ -39,11 +31,16 @@ class TaskQueue {
 }
 
 
-const audio = document.querySelector('audio')!
+const audio = document.querySelector('audio')
 
 
 // TODO add timed rejection and error handling
-async function task(args: string) {
+/**
+ * 
+ * @param {string} args 
+ * @returns {Promise<void>}
+ */
+async function task(args) {
     const source = new MediaSource()
     audio.src = window.URL.createObjectURL(source)
 
@@ -53,7 +50,8 @@ async function task(args: string) {
         body: JSON.stringify({text: args, model_id: "eleven_multilingual_v2"})
     })
 
-    const prom2 = new Promise<void>((res, rej) => {
+    /** @type {Promise<void>} */
+    const prom2 = new Promise((res, rej) => {
         if (source.readyState === 'open') res()
         else source.onsourceopen = () => {
             source.onsourceopen = null
@@ -63,9 +61,9 @@ async function task(args: string) {
 
     const response = await Promise.all([prom1, prom2])
     
-    const reader = response[0].body!.getReader()
+    const reader = response[0].body.getReader()
 
-    const arrayBuffer: Array<Uint8Array> = []
+    const arrayBuffer = []
     let toSkip = false
     skip.disabled = false
 
@@ -77,7 +75,11 @@ async function task(args: string) {
 
     imgsrc.src = "../../../content/speaker.svg"
 
-    async function pump(): Promise<void> {
+    /**
+     * 
+     * @returns {Promise<void>}
+     */
+    async function pump() {
         if (toSkip) return source.endOfStream()
              
         let toAdd = arrayBuffer.shift()
@@ -93,7 +95,8 @@ async function task(args: string) {
                 
             return new Promise((res, rej) => setTimeout(() => res(pump()), 10000))
         }
-        await new Promise<void>((res, rej) => {
+        /** @type {Promise<void>} */
+        await new Promise((res, rej) => {
             if (buffer.updating) buffer.onupdate = () => res()
             else res()
         })
@@ -104,7 +107,7 @@ async function task(args: string) {
     pump()
     audio.play()
 
-    return new Promise<void>((res, rej) => {
+    return new Promise((res, rej) => {
         audio.onended = () => {
             skip.disabled = true
             skip.onclick = null
@@ -127,13 +130,14 @@ async function task(args: string) {
     })
 }
 
-const controls = document.getElementById('controls') as HTMLInputElement
+const controls = document.getElementById('controls')
 
-const imgsrc = document.querySelector('img')!
+const imgsrc = document.querySelector('img')
 
-const skip = document.querySelector('button')!
+const skip = document.querySelector('button')
 
 controls.addEventListener('input', () => {
+    //@ts-ignore
     audio.volume = parseFloat(controls.value) / 100
 })
 
@@ -158,7 +162,7 @@ const queue = new TaskQueue()
 
 
 
-window.elevenlabsApi.onTask((args:any) => {
+window.elevenlabsApi.onTask((args) => {
     queue.addTask(() => task(args))
 })
 

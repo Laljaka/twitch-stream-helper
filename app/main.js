@@ -2,27 +2,37 @@ import { app, BrowserWindow, ipcMain, utilityProcess, safeStorage } from 'electr
 import fs from 'node:fs'
 import path from "node:path"
 
-let mainWindow: BrowserWindow
+/** @type {BrowserWindow} */
+let mainWindow
 
 const moduleMapping = {
     'twitchpubsub': createHiddenWindow,
     'renderer': createWindow,
     'http': createHiddenWindow,
     'elevenlabs': createWindow
-} as const 
+} 
 
-type Modules = {
-    [key in ModuleName]?: BrowserWindow
+
+/** @type {import('./shared_types.d.ts').MultiModuleStorage} */
+let storage = {
+    twitchpubsub: {},
+    renderer: {},
+    http: {},
+    elevenlabs: {}
 }
 
-let storage: MultiModuleStorage
+/** @type {import('./shared_types.d.ts').Modules} */
+const modules = {}
 
-const modules: Modules = {}
+const __dirname = path.join(process.cwd(), '/app')
+const __filepath = path.join(process.cwd(), '/content/storage.bin')
 
-const __dirname = path.join(process.cwd(), '/dist')
-const __filepath = path.join(process.cwd(), 'content/storage.bin')
-
-function createMainWindow(data: string) {
+/**
+ * 
+ * @param {string} data 
+ * @returns {BrowserWindow}
+ */
+function createMainWindow(data) {
     const win = new BrowserWindow({
         width: 800,
         minWidth: 700,
@@ -45,7 +55,12 @@ function createMainWindow(data: string) {
     return win
 }
 
-function createHiddenWindow(moduleName: ModuleName) {
+/**
+ * 
+ * @param {import('./shared_types.d.ts').ModuleName} moduleName 
+ * @returns {BrowserWindow}
+ */
+function createHiddenWindow(moduleName) {
     const win = new BrowserWindow({
         width: 200,
         height: 200,
@@ -62,7 +77,12 @@ function createHiddenWindow(moduleName: ModuleName) {
     return win
 }
 
-function createWindow(moduleName: ModuleName) {
+/**
+ * 
+ * @param {import('./shared_types.d.ts').ModuleName} moduleName 
+ * @returns {BrowserWindow}
+ */
+function createWindow(moduleName) {
     const win = new BrowserWindow({
         width: 800,
         height: 600,
@@ -84,17 +104,21 @@ function createWindow(moduleName: ModuleName) {
     return win
 }
 
+/**
+ * 
+ * @returns {Promise<string>}
+ */
 function readData() {
-    return new Promise<string>((res, rej) => {
+    return new Promise((res, rej) => {
         fs.readFile(__filepath, (err1, data) => {
             if (err1) {
                 //process.exit(1)
                 fs.open(__filepath, 'w', (err2, fd) => {
                     if (err2) rej(`Could not open the old file nor create a new one -- ${err1} + ${err2}`)
                     else {
-                        fs.writeSync(fd, safeStorage.encryptString(JSON.stringify({})))
+                        fs.writeSync(fd, safeStorage.encryptString(JSON.stringify(storage)))
                         fs.closeSync(fd)
-                        res(JSON.stringify({}))
+                        res(JSON.stringify(storage))
                     }
                 })
             } else {
@@ -104,15 +128,24 @@ function readData() {
     })
 }
 
-function registerModule(moduleName: ModuleName) {
-    ipcMain.on(`${moduleName}:readyState`, (ev, args: boolean) => {
+/**
+ * 
+ * @param {import('./shared_types.d.ts').ModuleName} moduleName 
+ */
+function registerModule(moduleName) {
+    ipcMain.on(`${moduleName}:readyState`, (ev, args) => {
         mainWindow.webContents.send(`${moduleName}:readyState`, args)
     })
     
 }
 
-function writeData(d: MultiModuleStorage) {
-    return new Promise<void>((res, rej) => {
+/**
+ * 
+ * @param {import('./shared_types.d.ts').MultiModuleStorage} d 
+ * @returns {Promise<void>}
+ */
+function writeData(d) {
+    return new Promise((res, rej) => {
         fs.writeFile(__filepath, safeStorage.encryptString(JSON.stringify(d)), (err) => {
             if (err) rej('How?')
             else res()
@@ -120,32 +153,33 @@ function writeData(d: MultiModuleStorage) {
     })
 }
 
-ipcMain.on('data', (_event, value: Data) => {
-    const ref = modules[value.to]
+
+ipcMain.on('data', (_event, value) => {
+    const ref = modules[value.to] 
     if (ref) ref.webContents.send('instruction', value.instruction)
 })
 
-ipcMain.on('stdout', (_, value: StdOut) => {
+ipcMain.on('stdout', (_, value) => {
     if (mainWindow) mainWindow.webContents.send(value.from, value.data)
 })
 
-ipcMain.on('save', (ev, from: ModuleName, data: ModuleStorage) => {
+ipcMain.on('save', (ev, from, data) => {
     storage[from] = data
 })
 
-ipcMain.handle('main:start-module', (_e, v: ModuleName) => {
-    return new Promise<void>(function(resolve, reject) {
+ipcMain.handle('main:start-module', (_e, v) => {
+    return new Promise(function(resolve, reject) {
         modules[v] = moduleMapping[v](v)
-        modules[v]!.once('closed', () => delete modules[v])
-        modules[v]!.once('ready-to-show', () => resolve())
+        modules[v].once('closed', () => delete modules[v])
+        modules[v].once('ready-to-show', () => resolve())
     })
 })
 
-ipcMain.handle("main:stop-module", (_e, v: ModuleName) => {
-    return new Promise<void>(function(resolve, reject) {
+ipcMain.handle("main:stop-module", (_e, v) => {
+    return new Promise(function(resolve, reject) {
         if (v in modules) {
-            modules[v]!.once('closed', () => resolve())
-            modules[v]!.webContents.send('close')
+            modules[v].once('closed', () => resolve())
+            modules[v].webContents.send('close')
         } else resolve()
     })
 })
