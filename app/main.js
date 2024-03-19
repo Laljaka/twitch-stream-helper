@@ -122,7 +122,15 @@ function readData() {
                     }
                 })
             } else {
-                res(safeStorage.decryptString(data))
+                try {
+                    const decrypted = safeStorage.decryptString(data)
+                    res(decrypted)
+                } catch (err) {
+                    console.log(err)
+                    fs.writeFileSync(__filepath, safeStorage.encryptString(JSON.stringify(storage)))
+                    res(JSON.stringify(storage))
+                }
+                
             }
         })
     })
@@ -133,9 +141,10 @@ function readData() {
  * @param {import('./shared_types.d.ts').ModuleName} moduleName 
  */
 function registerModule(moduleName) {
-    ipcMain.on(`${moduleName}:readyState`, (ev, args) => {
+    ipcMain.on(`${moduleName}:readyState`, (_, args) => {
         mainWindow.webContents.send(`${moduleName}:readyState`, args)
     })
+
     
 }
 
@@ -153,19 +162,22 @@ function writeData(d) {
     })
 }
 
-
+/*
 ipcMain.on('data', (_event, value) => {
     const ref = modules[value.to] 
     if (ref) ref.webContents.send('instruction', value.instruction)
-})
+})*/
 
-ipcMain.on('stdout', (_, value) => {
-    if (mainWindow) mainWindow.webContents.send(value.from, value.data)
+ipcMain.on('stdout', (_, from, args, state) => {
+    mainWindow.webContents.send('stdout', from, args, state)
 })
 
 ipcMain.on('save', (ev, from, data) => {
     storage[from] = data
 })
+
+// TODO try packing this into stdout
+
 
 ipcMain.handle('main:start-module', (_e, v) => {
     return new Promise(function(resolve, reject) {
@@ -173,6 +185,15 @@ ipcMain.handle('main:start-module', (_e, v) => {
         modules[v].once('closed', () => delete modules[v])
         modules[v].once('ready-to-show', () => resolve())
     })
+})
+
+ipcMain.on('main:start-module:new', (_, v) => {
+    modules[v] = moduleMapping[v](v)
+    modules[v].once('closed', () => delete modules[v])
+})
+
+ipcMain.on('main:stop-module:new', (_, v) => {
+    if (v in modules) modules[v].webContents.send('close')
 })
 
 ipcMain.handle("main:stop-module", (_e, v) => {

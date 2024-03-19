@@ -13,7 +13,7 @@ class TaskQueue {
     async execute() {
         const todo = this.list.shift()
         if (todo) {
-            await todo().catch((err) => window.elevenlabsApi.stdout(`An error has occured: ${err}`))
+            await todo().catch((err) => window.elevenlabsApi.stdout(`An error has occured: ${err}`, null))
             this.execute()
         } else this.onTask = false
     }
@@ -167,7 +167,10 @@ window.elevenlabsApi.onTask((args) => {
 })
 
 
-window.elevenlabsApi.onClose(() => window.close())
+window.elevenlabsApi.onClose(() => {
+    window.elevenlabsApi.stdout(null, false)
+    window.close()
+})
 
 window.addEventListener('beforeunload', (ev) => {
     console.log('HERE BE VOLUME SAVING')
@@ -176,5 +179,5 @@ window.addEventListener('beforeunload', (ev) => {
 queue.addTask(() => task('Testing 1 a very long text Testing 1 a very long textTesting 1 a very long text'))
 queue.addTask(() => task('Testing 2 electric boogaloo'))
 
-window.elevenlabsApi.stdout('finished loading module')
+window.elevenlabsApi.stdout('finished loading module', true)
 

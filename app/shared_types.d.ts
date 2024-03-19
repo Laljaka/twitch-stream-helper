@@ -27,21 +27,24 @@ declare global {
     interface Window {
         rendererApi: {
             toClose: (callback: Function) => void
-            stdout: (message: string) => void
+            stdout: (message: string, state: boolean|null) => void
             onData: (callback: Function) => void
         }
         mainApi: {
             storage: MultiModuleStorage
             startModule: (v: string) => Promise<void>
             stopModule: (v: string) => Promise<void>
-            toConsole: (v: string, callback: Function) => void
+            toConsole: (callback: Function) => void
             save: (from: string, s: MultiModuleStorage) => void
+            stateUpdate: (callback: Function) => void
+            startModuleNew: (v: string) => void
+            stopModuleNew: (v: string) => void
           }
-          elevenlabsApi: {
+        elevenlabsApi: {
             onClose: (callback: Function) => void
             credentials : ModuleStorage
             onTask: (callback: Function) => void
-            stdout: (args: string) => void
+            stdout: (args: string, state: boolean|null) => void
         }
     }
 }

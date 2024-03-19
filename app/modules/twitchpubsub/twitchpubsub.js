@@ -148,5 +148,5 @@ ipcRenderer.on('close', () => {
 })
 
 function send(data) {
-    ipcRenderer.send('stdout', {from: 'twitchpubsub', data: data})
+    ipcRenderer.send('stdout', 'twitchpubsub', data, null)
 }

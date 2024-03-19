@@ -13,12 +13,6 @@ modules.forEach(async (module, key) => {
         settingsReference.style.display = 'grid'
     })
 
-    window.mainApi.toConsole(module.id, (v) => {
-        const ref = document.getElementById(`-${module.id}`).querySelector('samp')
-        const spn = document.createElement('span')
-        spn.innerText = `${module.id}:> ${v}`
-        ref.appendChild(spn)
-    })
   /*
   const form = document.getElementById(`-${module.id}`)!.querySelector('form')!
   const mod = api.storage[module.id as keyof MultiModuleStorage]
@@ -28,6 +22,33 @@ modules.forEach(async (module, key) => {
     }
   }*/
 })
+
+window.mainApi.toConsole((from, v, state) => {
+    if (v) {
+        const ref = document.getElementById(`-${from}`).querySelector('samp')
+        const spn = document.createElement('span')
+        spn.innerText = `${from}:> ${v}`
+        ref.appendChild(spn)
+    }
+    if (state !== null) {
+        const ref = document.getElementById(`-${from}`).querySelector('.switch')
+        /** @type {HTMLElement} */
+        const thumb = ref.querySelector('.thumb')
+        const checkbox = ref.querySelector('input')
+        if (state === true) {
+            thumb.style.setProperty('--outline', "lime")
+            document.getElementById(from).style.setProperty('--before-color', "lime")
+            checkbox.disabled = false
+        } else {
+            thumb.style.setProperty('--outline', "red")
+            document.getElementById(from).style.setProperty('--before-color', "red")
+            checkbox.disabled = false
+        }
+    }
+    
+})
+
+
 
 for (let key in window.mainApi.storage) {
     const form = document.getElementById(`-${key}`).querySelector('form')
@@ -50,23 +71,16 @@ cSwitches.forEach((cSwitch) => {
     /** @type {HTMLElement} */
     const thumb = cSwitch.querySelector('.thumb')
     const moduleReference = cSwitch.parentElement.parentElement.dataset['id']
-    checkbox.addEventListener('change', async (ev) => {
+    checkbox.addEventListener('change', (_) => {
         checkbox.disabled = true
         thumb.style.setProperty('--outline', 'yellow')
         document.getElementById(moduleReference).style.setProperty('--before-color', "yellow")
-        if (checkbox.checked) {
-            await window.mainApi.startModule(moduleReference).catch((e) => console.log(e))
-            thumb.style.setProperty('--outline', "lime")
-            document.getElementById(moduleReference).style.setProperty('--before-color', "lime")
-            checkbox.disabled = false
-        } else {
-            await window.mainApi.stopModule(moduleReference)
-            thumb.style.setProperty('--outline', "red")
-            document.getElementById(moduleReference).style.setProperty('--before-color', "red")
-            checkbox.disabled = false
-        }
+        if (checkbox.checked) window.mainApi.startModuleNew(moduleReference)
+        else window.mainApi.stopModuleNew(moduleReference)
     })
 })
+
+
 
 const fformList = document.querySelectorAll('form')
 
