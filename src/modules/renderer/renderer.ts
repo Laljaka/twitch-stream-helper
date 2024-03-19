@@ -1,37 +1,65 @@
 import * as THREE from "three";
 import { OBJLoader } from "three/addons";
 
+declare global {
+    interface Window {
+        rendererApi: {
+            toClose: (callback: Function) => void
+            stdout: (message: string) => void
+            onData: (callback: Function) => void
+        }
+    }
+}
+
 window.rendererApi.toClose(() => window.close())
 
 const scene = new THREE.Scene()
 scene.background = new THREE.Color(0x00ff00)
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
-const renderer = new THREE.WebGLRenderer({canvas: document.getElementById('3D') as HTMLCanvasElement})
+const renderer = new THREE.WebGLRenderer()
+document.body.appendChild(renderer.domElement)
 renderer.setSize(window.innerWidth, window.innerHeight)
+
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight
+    camera.updateProjectionMatrix()
+
+    renderer.setSize(window.innerWidth, window.innerHeight)
+})
 
 const loader = new OBJLoader()
 const mtlload = new THREE.TextureLoader()
 
-let clock = new THREE.Clock();
+const clock = new THREE.Clock();
 let delta = 0;
 // 30 fps
-let interval = 1 / 30;
+const interval = 1 / 30;
 
 camera.position.z = 3;
 
 const light = new THREE.AmbientLight( 0xffffff );
 scene.add( light );
 
+let xrot = 0.005
+let yrot = 0.005
+
+window.rendererApi.onData((args: any) => {
+    xrot = parseFloat(args)
+})
+
+window.rendererApi.stdout('loading the model')
 mtlload.load('../../../content/rat_albedo.png', (texture) => {
+    window.rendererApi.stdout('texture loaded')
     loader.load('../../../content/eeee.obj', (obj) => {
+        window.rendererApi.stdout('model loaded')
         obj.traverse((child) => {
             if (child instanceof THREE.Mesh) child.material.map = texture
         })
         scene.add( obj );
         function animate() {
             requestAnimationFrame( animate );
-            obj.rotation.x += 0.005
-            obj.rotation.y += 0.005
+            obj.rotation.x += xrot
+            obj.rotation.y += yrot
             delta += clock.getDelta();
 
             if (delta  > interval) {
@@ -40,18 +68,13 @@ mtlload.load('../../../content/rat_albedo.png', (texture) => {
                 delta = delta % interval;
             }
         }
+        window.rendererApi.stdout('displaying scene')
         animate()
+    }, undefined, (err) => {
+        window.rendererApi.stdout(`an error has occured ${err}`)
+        window.close()
     })
-    
+}, undefined, (err) => {
+    window.rendererApi.stdout(`an error has occured ${err}`)
+    window.close()
 })
-
-
-
-
-
-
-
-//})
-
-
-
