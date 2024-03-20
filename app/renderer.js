@@ -23,31 +23,30 @@ modules.forEach(async (module, key) => {
   }*/
 })
 
-window.mainApi.toConsole((from, v, state) => {
-    if (v) {
-        const ref = document.getElementById(`-${from}`).querySelector('samp')
-        const spn = document.createElement('span')
-        spn.innerText = `${from}:> ${v}`
-        ref.appendChild(spn)
-    }
-    if (state !== null) {
-        const ref = document.getElementById(`-${from}`).querySelector('.switch')
-        /** @type {HTMLElement} */
-        const thumb = ref.querySelector('.thumb')
-        const checkbox = ref.querySelector('input')
-        if (state === true) {
-            thumb.style.setProperty('--outline', "lime")
-            document.getElementById(from).style.setProperty('--before-color', "lime")
-            checkbox.disabled = false
-        } else {
-            thumb.style.setProperty('--outline', "red")
-            document.getElementById(from).style.setProperty('--before-color', "red")
-            checkbox.disabled = false
-        }
-    }
-    
+window.mainApi.toConsole((from, v) => {
+    const ref = document.getElementById(`-${from}`).querySelector('samp')
+    const spn = document.createElement('span')
+    spn.innerText = `${from}:> ${v}`
+    ref.appendChild(spn)
 })
 
+window.mainApi.stateUpdate((from, state) => {
+    const ref = document.getElementById(`-${from}`).querySelector('.switch')
+    /** @type {HTMLElement} */
+    const thumb = ref.querySelector('.thumb')
+    const checkbox = ref.querySelector('input')
+    if (state === true) {
+        thumb.style.setProperty('--outline', "lime")
+        document.getElementById(from).style.setProperty('--before-color', "lime")
+        checkbox.disabled = false
+        if (!checkbox.checked) checkbox.checked = true
+    } else {
+        thumb.style.setProperty('--outline', "red")
+        document.getElementById(from).style.setProperty('--before-color', "red")
+        checkbox.disabled = false
+        if (checkbox.checked) checkbox.checked = false
+    }
+})
 
 
 for (let key in window.mainApi.storage) {
@@ -75,8 +74,8 @@ cSwitches.forEach((cSwitch) => {
         checkbox.disabled = true
         thumb.style.setProperty('--outline', 'yellow')
         document.getElementById(moduleReference).style.setProperty('--before-color', "yellow")
-        if (checkbox.checked) window.mainApi.startModuleNew(moduleReference)
-        else window.mainApi.stopModuleNew(moduleReference)
+        if (checkbox.checked) window.mainApi.startModule(moduleReference)
+        else window.mainApi.stopModule(moduleReference)
     })
 })
 

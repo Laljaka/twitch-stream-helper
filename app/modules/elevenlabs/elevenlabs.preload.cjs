@@ -11,5 +11,6 @@ contextBridge.exposeInMainWorld('elevenlabsApi', {
     onTask: (callback) => {
         ipcRenderer.on('task', (_e, args) => callback(args))
     },
-    stdout: (args, state) => ipcRenderer.send('stdout', 'elevenlabs', args, state)
+    stdout: (args) => ipcRenderer.send('stdout', 'elevenlabs', args),
+    ready: () => ipcRenderer.send('state', 'elevenlabs', true)
 })

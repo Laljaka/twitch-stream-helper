@@ -78,12 +78,17 @@ const server = http.createServer((req, res) => {
 
 server.listen(port, host, () => {
     //window.bridge.sendToMain(`Server is running on http://${host}:${port}`)
-    ipcRenderer.send('stdout', "http", `Server is running on http://${host}:${port}`, true)
+    ipcRenderer.send('stdout', "http", `Server is running on http://${host}:${port}`)
+    ipcRenderer.send('state', 'http', true)
 })
 
 
 ipcRenderer.once('close', () => {
-    ipcRenderer.send('stdout', "http", null, false)
+    window.close()
+})
+
+window.addEventListener('error', (ev) => {
+    ipcRenderer.send('stdout', 'http', ev.message)
     window.close()
 })
 

@@ -112,7 +112,6 @@ function readData() {
     return new Promise((res, rej) => {
         fs.readFile(__filepath, (err1, data) => {
             if (err1) {
-                //process.exit(1)
                 fs.open(__filepath, 'w', (err2, fd) => {
                     if (err2) rej(`Could not open the old file nor create a new one -- ${err1} + ${err2}`)
                     else {
@@ -177,33 +176,22 @@ ipcMain.on('save', (ev, from, data) => {
 })
 
 // TODO try packing this into stdout
+ipcMain.on('state', (_, from, state) => {
+    mainWindow.webContents.send('state', from, state)
+})
 
-
-ipcMain.handle('main:start-module', (_e, v) => {
-    return new Promise(function(resolve, reject) {
-        modules[v] = moduleMapping[v](v)
-        modules[v].once('closed', () => delete modules[v])
-        modules[v].once('ready-to-show', () => resolve())
+ipcMain.on('main:start-module', (_,/** @type {import('./shared_types.d.ts').ModuleName} */ v) => {
+    modules[v] = moduleMapping[v](v)
+    modules[v].once('closed', () => {
+        mainWindow.webContents.send('state', v, false)
+        delete modules[v]
     })
 })
 
-ipcMain.on('main:start-module:new', (_, v) => {
-    modules[v] = moduleMapping[v](v)
-    modules[v].once('closed', () => delete modules[v])
-})
-
-ipcMain.on('main:stop-module:new', (_, v) => {
+ipcMain.on('main:stop-module', (_, v) => {
     if (v in modules) modules[v].webContents.send('close')
 })
 
-ipcMain.handle("main:stop-module", (_e, v) => {
-    return new Promise(function(resolve, reject) {
-        if (v in modules) {
-            modules[v].once('closed', () => resolve())
-            modules[v].webContents.send('close')
-        } else resolve()
-    })
-})
 
 app.once('before-quit', async (ev) => {
     ev.preventDefault()
