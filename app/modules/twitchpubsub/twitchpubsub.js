@@ -78,7 +78,7 @@ function reconnect(reconnect_url = null) {
     send('Connection lost, recconecting...')
     clearTimeout(timeout)
     disconnect(socket)
-    if (reconnect_url !== null) {
+    if (reconnect_url) {
         socket = connect(reconnect_url)
     } else {
         socket = connect()
@@ -97,8 +97,8 @@ async function message(data) {
             if (SID !== json.payload.session.id) {
                 send('Received session ID, subscribing to events...')
                 SID = json.payload.session.id
-                await unsub().catch((e) => send(e))
-                await sub().catch((e) => send(e))
+                await unsub()
+                await sub()
                 send('Subscribed to events!')
             }
             timeout = setTimeout(reconnect, 100000)
@@ -143,12 +143,25 @@ async function message(data) {
 
 
 ipcRenderer.on('close', () => {
-        disconnect(socket)
-        window.close()    
+    shutdown()
 })
 
+/**
+ * 
+ * @param {string} data 
+ */
 function send(data) {
     ipcRenderer.send('stdout', 'twitchpubsub', data)
 }
 
 ipcRenderer.send('state', 'twitchpubsub', true)
+
+/**
+ * 
+ * @param {string} [reason]
+ */
+function shutdown(reason) {
+    disconnect(socket)
+    if (reason) send(reason)
+    window.close() 
+}

@@ -8,7 +8,7 @@ const fs = require('node:fs/promises')
 const host = "localhost"
 const port = 6969
 
-const __dir = `${process.cwd()}/dist/modules/http`
+const __dir = `${process.cwd()}/app/modules/http`
 
 const reqMap = {
     '/polls': ["text/html", fs.readFile(`${__dir}/pages/polls.html`)],
@@ -38,6 +38,7 @@ const server = http.createServer((req, res) => {
     } else {
         res.writeHead(404)
         res.end("Nothing to see here")
+        throw new Error('TEST')
     }
     /*
     if (req.url === '/polls.js') {}
@@ -78,8 +79,8 @@ const server = http.createServer((req, res) => {
 
 server.listen(port, host, () => {
     //window.bridge.sendToMain(`Server is running on http://${host}:${port}`)
-    ipcRenderer.send('stdout', "http", `Server is running on http://${host}:${port}`)
-    ipcRenderer.send('state', 'http', true)
+    ipcRenderer.send('stdout', "server", `running on http://${host}:${port}`)
+    ipcRenderer.send('state', 'server', true)
 })
 
 
@@ -87,8 +88,4 @@ ipcRenderer.once('close', () => {
     window.close()
 })
 
-window.addEventListener('error', (ev) => {
-    ipcRenderer.send('stdout', 'http', ev.message)
-    window.close()
-})
 

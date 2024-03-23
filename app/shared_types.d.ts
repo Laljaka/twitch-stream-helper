@@ -1,6 +1,7 @@
 import { BrowserWindow } from "electron"
 
-type ModuleName = 'twitchpubsub' | 'renderer' | 'http' | 'elevenlabs' 
+
+type ModuleName = 'twitchpubsub' | 'modelviewer' | 'server' | 'elevenlabs' 
 
 type Data = {
     //'from': ModuleName,
@@ -19,6 +20,10 @@ type ModuleStorage = {
 
 type MultiModuleStorage = {
     [key in ModuleName]?: ModuleStorage
+}
+
+type ConstantModule = {
+    [key in ModuleName]: Function
 }
 
 //type ModuleName = keyof MultiModuleStorage

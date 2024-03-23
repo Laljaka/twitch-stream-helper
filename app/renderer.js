@@ -3,6 +3,13 @@ let context
 
 const modules = document.querySelectorAll('.inactive')
 
+const displayNames = {
+    twitchpubsub: "Twitch API",
+    modelviewer: "Renderer",
+    server: "HTTP Server",
+    elevenlabs: "Elevenlabs"
+}
+
 modules.forEach(async (module, key) => {
     module.addEventListener('click', () => {
         document.getElementById('aaa').style.top = `${(70 * key) + 25}px`
@@ -26,7 +33,7 @@ modules.forEach(async (module, key) => {
 window.mainApi.toConsole((from, v) => {
     const ref = document.getElementById(`-${from}`).querySelector('samp')
     const spn = document.createElement('span')
-    spn.innerText = `${from}:> ${v}`
+    spn.innerText = `${displayNames[from]} :> ${v}`
     ref.appendChild(spn)
 })
 
@@ -51,6 +58,7 @@ window.mainApi.stateUpdate((from, state) => {
 
 for (let key in window.mainApi.storage) {
     const form = document.getElementById(`-${key}`).querySelector('form')
+    /** @type {import("./shared_types.d.ts").ModuleStorage} */
     const mod = window.mainApi.storage[key]
     for (let name in mod) {
         const test = mod[name]
@@ -74,8 +82,7 @@ cSwitches.forEach((cSwitch) => {
         checkbox.disabled = true
         thumb.style.setProperty('--outline', 'yellow')
         document.getElementById(moduleReference).style.setProperty('--before-color', "yellow")
-        if (checkbox.checked) window.mainApi.startModule(moduleReference)
-        else window.mainApi.stopModule(moduleReference)
+        checkbox.checked? window.mainApi.startModule(moduleReference) : window.mainApi.stopModule(moduleReference)
     })
 })
 
@@ -107,8 +114,7 @@ reveals.forEach((v) => {
         //const ref = ev.currentTarget
         const prev = v.previousElementSibling
         //ref.style.setProperty('--svg', ref.checked? 'url("../content/eye.svg")' : 'url("../content/eye-slash.svg")')
-        //@ts-ignore
-        prev.type = v.checked? 'text' : "password"
+        if (prev instanceof HTMLInputElement) prev.type = v.checked? 'text' : "password"
     })
 })
 

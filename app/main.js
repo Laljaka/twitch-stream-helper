@@ -5,19 +5,20 @@ import path from "node:path"
 /** @type {BrowserWindow} */
 let mainWindow
 
+/** @type {import('./shared_types.d.ts').ConstantModule} */
 const moduleMapping = {
-    'twitchpubsub': createHiddenWindow,
-    'renderer': createWindow,
-    'http': createHiddenWindow,
-    'elevenlabs': createWindow
+    twitchpubsub: createHiddenWindow,
+    modelviewer: createWindow,
+    server: createHiddenWindow,
+    elevenlabs: createWindow
 } 
 
 
 /** @type {import('./shared_types.d.ts').MultiModuleStorage} */
 let storage = {
     twitchpubsub: {},
-    renderer: {},
-    http: {},
+    modelviewer: {},
+    server: {},
     elevenlabs: {}
 }
 
@@ -47,8 +48,6 @@ function createMainWindow(data) {
     })
 
     win.loadFile(path.join(__dirname, 'index.html'))
-
-    win.once('closed', () => app.quit())
 
     win.once('ready-to-show', () => win.show())
 
@@ -180,10 +179,10 @@ ipcMain.on('state', (_, from, state) => {
     mainWindow.webContents.send('state', from, state)
 })
 
-ipcMain.on('main:start-module', (_,/** @type {import('./shared_types.d.ts').ModuleName} */ v) => {
+ipcMain.on('main:start-module', (_, /** @type {import('./shared_types.d.ts').ModuleName} */ v) => {
     modules[v] = moduleMapping[v](v)
     modules[v].once('closed', () => {
-        mainWindow.webContents.send('state', v, false)
+        if (mainWindow) mainWindow.webContents.send('state', v, false)
         delete modules[v]
     })
 })
@@ -211,6 +210,10 @@ app.whenReady().then(async () => {
     const temporary = await readData()
     storage = JSON.parse(temporary) 
     mainWindow = createMainWindow(temporary)
+    mainWindow.once('closed', () => {
+        mainWindow = null
+        app.quit()
+    })
 }).catch((err) => {
     console.error(err)
     app.quit()
