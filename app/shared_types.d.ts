@@ -41,7 +41,7 @@ declare global {
             //startModule: (v: string) => Promise<void>
             //stopModule: (v: string) => Promise<void>
             toConsole: (callback: Function) => void
-            save: (from: string, s: MultiModuleStorage) => void
+            save: (from: string, key: string, value: string|boolean) => void
             stateUpdate: (callback: Function) => void
             startModule: (v: string) => void
             stopModule: (v: string) => void

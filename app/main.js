@@ -170,8 +170,8 @@ ipcMain.on('stdout', (_, from, args, state) => {
     mainWindow.webContents.send('stdout', from, args, state)
 })
 
-ipcMain.on('save', (ev, from, data) => {
-    storage[from] = data
+ipcMain.on('save', (ev, from, key, data) => {
+    storage[from][key] = data
 })
 
 // TODO try packing this into stdout

@@ -77,8 +77,16 @@ cSwitches.forEach((cSwitch) => {
     checkbox.checked = false
     /** @type {HTMLElement} */
     const thumb = cSwitch.querySelector('.thumb')
-    const moduleReference = cSwitch.parentElement.parentElement.dataset['id']
-    checkbox.addEventListener('change', (_) => {
+    const mref = cSwitch.parentElement.parentElement
+    const fref = mref.querySelector('form')
+    const moduleReference = mref.dataset['id']
+    checkbox.addEventListener('change', (ev) => {
+        if (checkbox.checked) {
+            if (!fref.reportValidity()) {
+                checkbox.checked = false
+                return
+            }
+        }
         checkbox.disabled = true
         thumb.style.setProperty('--outline', 'yellow')
         document.getElementById(moduleReference).style.setProperty('--before-color', "yellow")
@@ -91,20 +99,14 @@ cSwitches.forEach((cSwitch) => {
 const fformList = document.querySelectorAll('form')
 
 fformList.forEach((fform) => {
-    fform.addEventListener('submit', (ev) => {
-        ev.preventDefault()
-        //const ref = ev.currentTarget
+    for (let elem of fform.elements){
         const ctx = fform.parentElement.parentElement.dataset['id']
-        //const lenght = ref.elements.length
-        const toSend = {}
-        for (let elem of fform.elements) {
-            if (elem instanceof HTMLInputElement && elem.type !== 'submit' && elem.type !== 'button' && elem.className !== 'reveal') {
-                if (elem.type === 'checkbox') toSend[elem.name] = elem.checked
-                else toSend[elem.name] = elem.value
-            } 
+        if (elem instanceof HTMLInputElement && elem.type !== 'submit' && elem.type !== 'button' && elem.className !== 'reveal') {
+            const ref = elem
+            if (ref.type === 'checkbox') ref.addEventListener('input', () => window.mainApi.save(ctx, ref.name, ref.checked))
+            else ref.addEventListener('input', () => window.mainApi.save(ctx, ref.name, ref.value))
         }
-        window.mainApi.save(ctx, toSend)
-    })
+    }
 })
 
 /** @type {NodeListOf<HTMLInputElement>} */
