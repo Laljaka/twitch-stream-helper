@@ -1,0 +1,7 @@
+{
+    "displayName": "Elevenlabs API",
+    "type": "receiver",
+    "mode": "window",
+    "secure": true,
+    "shown": true
+}

@@ -1,0 +1,7 @@
+{
+    "displayName": "Twitch PubSub API",
+    "type": "sender",
+    "mode": "window",
+    "secure": false,
+    "shown": false
+}

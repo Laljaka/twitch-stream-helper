@@ -1,0 +1,7 @@
+{
+    "displayName": "HTTP Server",
+    "type": "receiver",
+    "mode": "window",
+    "secure": false,
+    "shown": false
+}

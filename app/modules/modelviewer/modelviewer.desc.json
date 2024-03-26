@@ -1,0 +1,7 @@
+{
+    "displayName": "3D renderer",
+    "type": "receiver",
+    "mode": "window",
+    "secure": true,
+    "shown": true
+}

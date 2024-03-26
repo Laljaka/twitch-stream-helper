@@ -2,38 +2,52 @@ import { app, BrowserWindow, ipcMain, utilityProcess, safeStorage } from 'electr
 import fs from 'node:fs'
 import path from "node:path"
 
+const __dir = path.join(process.cwd(), '/app')
+const __moduledir = path.join(__dir, '/modules')
+const __filepath = path.join(process.cwd(), '/content/storage.bin')
+
 /** @type {BrowserWindow} */
 let mainWindow
 
-/** @type {import('./shared_types.d.ts').ConstantModule} */
-const moduleMapping = {
-    twitchpubsub: createHiddenWindow,
-    modelviewer: createWindow,
-    server: createHiddenWindow,
-    elevenlabs: createWindow
-} 
+const dirarr = fs.readdirSync(__moduledir, { withFileTypes: true })
+    .filter((dir) => dir.isDirectory())
+    .map((dir) => dir.name)
 
+const moduleInfo = dirarr.reduce((acc, cur) => {
+    acc[cur] = JSON.parse(fs.readFileSync(path.join(__moduledir, `/${cur}/${cur}.desc.json`), {encoding: "utf-8"}))
+    return acc
+}, {})
 
 /** @type {import('./shared_types.d.ts').MultiModuleStorage} */
-let storage = {
-    twitchpubsub: {},
-    modelviewer: {},
-    server: {},
-    elevenlabs: {}
-}
+let storage = dirarr.reduce((acc, cur) => {
+    acc[cur] = {}
+    return acc
+}, {})
+
+
+console.log(storage)
+
+/*
+const moduleMapping = dirarr.reduce((acc, cur) => {
+    const ref = JSON.parse(fs.readFileSync(path.join(__moduledir, `/${cur}/${cur}.desc.json`), {encoding: "utf-8"})).shown
+    if (ref) acc[cur] = createWindow
+    else acc[cur] = createHiddenWindow
+    return acc
+}, {})
+console.log(moduleMapping)
+*/
 
 /** @type {import('./shared_types.d.ts').Modules} */
 const modules = {}
 
-const __dirname = path.join(process.cwd(), '/app')
-const __filepath = path.join(process.cwd(), '/content/storage.bin')
 
 /**
  * 
  * @param {string} data 
+ * @param {string} names 
  * @returns {BrowserWindow}
  */
-function createMainWindow(data) {
+function createMainWindow(data, names) {
     const win = new BrowserWindow({
         width: 800,
         minWidth: 700,
@@ -42,23 +56,19 @@ function createMainWindow(data) {
         autoHideMenuBar: true,
         show: false,
         webPreferences: {
-            preload: path.join(__dirname, 'preload.cjs'),
-            additionalArguments: [data]
+            preload: path.join(__dir, 'preload.cjs'),
+            additionalArguments: [names, data]
         }
     })
 
-    win.loadFile(path.join(__dirname, 'index.html'))
+    win.loadFile(path.join(__dir, 'index.html'))
 
     win.once('ready-to-show', () => win.show())
 
     return win
 }
 
-/**
- * 
- * @param {import('./shared_types.d.ts').ModuleName} moduleName 
- * @returns {BrowserWindow}
- */
+/*
 function createHiddenWindow(moduleName) {
     const win = new BrowserWindow({
         width: 200,
@@ -71,10 +81,11 @@ function createHiddenWindow(moduleName) {
         }
     })
 
-    win.loadFile(path.join(__dirname, `modules/${moduleName}/${moduleName}.html`))
+    win.loadFile(path.join(__moduledir, `/${moduleName}/${moduleName}.html`))
 
     return win
 }
+*/
 
 /**
  * 
@@ -82,23 +93,24 @@ function createHiddenWindow(moduleName) {
  * @returns {BrowserWindow}
  */
 function createWindow(moduleName) {
+    const ref = moduleInfo[moduleName]
     const win = new BrowserWindow({
         width: 800,
         height: 600,
         show: false,
         autoHideMenuBar: true,
         webPreferences: {
-            //nodeIntegration: true,
-            //contextIsolation: false,
-            preload: path.join(__dirname, `modules/${moduleName}/${moduleName}.preload.cjs`),
+            nodeIntegration: !ref.secure,
+            contextIsolation: ref.secure,
+            preload: ref.secure? path.join(__dir, `modules/${moduleName}/${moduleName}.preload.cjs`) : null,
             //preload: path.join(__dirname, `modules/${moduleName}/${moduleName}.preload.js`),
             additionalArguments: [JSON.stringify(storage[moduleName])]
         }
     })
 
-    win.loadFile(path.join(__dirname, `modules/${moduleName}/${moduleName}.html`))
+    win.loadFile(path.join(__moduledir, `/${moduleName}/${moduleName}.html`))
 
-    win.once('ready-to-show', () => win.show())
+    if (ref.shown) win.once('ready-to-show', () => win.show())
     
     return win
 }
@@ -130,6 +142,7 @@ function readData() {
                 }
                 
             }
+            console.log('read the file')
         })
     })
 }
@@ -180,7 +193,7 @@ ipcMain.on('state', (_, from, state) => {
 })
 
 ipcMain.on('main:start-module', (_, /** @type {import('./shared_types.d.ts').ModuleName} */ v) => {
-    modules[v] = moduleMapping[v](v)
+    modules[v] = createWindow(v)
     modules[v].once('closed', () => {
         if (mainWindow) mainWindow.webContents.send('state', v, false)
         delete modules[v]
@@ -207,9 +220,10 @@ app.on('window-all-closed', () => console.log('all closed'))
 
 
 app.whenReady().then(async () => {
+    console.log('ready')
     const temporary = await readData()
-    storage = JSON.parse(temporary) 
-    mainWindow = createMainWindow(temporary)
+    storage = JSON.parse(temporary)
+    mainWindow = createMainWindow(temporary, JSON.stringify(moduleInfo))
     mainWindow.once('closed', () => {
         mainWindow = null
         app.quit()
