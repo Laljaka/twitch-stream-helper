@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, utilityProcess, safeStorage } from 'electron'
 import fs from 'node:fs'
 import path from "node:path"
-import { Module } from './resources/module.js'
+import { Module, createMainWindow } from './resources/module.js'
 
 const __dir = path.join(process.cwd(), '/app')
 const __moduledir = path.join(__dir, '/modules')
@@ -10,76 +10,42 @@ const __filepath = path.join(process.cwd(), '/content/storage.bin')
 /** @type {BrowserWindow} */
 let mainWindow
 
-const mod = new Module('a')
-
-
-
 const dirarr = fs.readdirSync(__moduledir, { withFileTypes: true })
     .filter((dir) => dir.isDirectory())
     .map((dir) => dir.name)
 
-const moduleInfo = dirarr.reduce((acc, cur) => {
-    acc[cur] = JSON.parse(fs.readFileSync(path.join(__moduledir, `/${cur}/${cur}.desc.json`), {encoding: "utf-8"}))
+/** @type {import('./shared_types.d.ts').Modules} */
+const modules = dirarr.reduce((acc, cur) => {
+    acc[cur] = new Module(cur)
     return acc
 }, {})
 
-/** @type {import('./shared_types.d.ts').MultiModuleStorage} */
-let storage = dirarr.reduce((acc, cur) => {
+const initArray = []
+for (const key in modules) {
+    initArray.push(modules[key].initialise())
+}
+await Promise.all(initArray)
+
+/** @type {import('./shared_types.d.ts').MultiModuleStorage} @readonly */
+const storageDefaults = dirarr.reduce((acc, cur) => {
     acc[cur] = {}
     return acc
 }, {})
 
-
-console.log(storage)
-
-
-/** @type {import('./shared_types.d.ts').Modules} */
-const modules = {}
-
-
 /**
- * 
- * @param {string} data 
- * @param {string} names 
- * @returns {BrowserWindow}
- */
-function createMainWindow(data, names) {
-    const win = new BrowserWindow({
-        width: 800,
-        minWidth: 700,
-        height: 600,
-        minHeight: 550,
-        autoHideMenuBar: true,
-        show: false,
-        webPreferences: {
-            preload: path.join(__dir, 'preload.cjs'),
-            additionalArguments: [names, data]
-        }
-    })
-
-    win.loadFile(path.join(__dir, 'index.html'))
-
-    win.once('ready-to-show', () => win.show())
-
-    return win
-}
-
-
-
-/**
- * 
+ * @param {import('./shared_types.d.ts').MultiModuleStorage} defaults 
  * @returns {Promise<string>}
  */
-function readData() {
+function readData(defaults) {
     return new Promise((res, rej) => {
         fs.readFile(__filepath, (err1, data) => {
             if (err1) {
                 fs.open(__filepath, 'w', (err2, fd) => {
                     if (err2) rej(`Could not open the old file nor create a new one -- ${err1} + ${err2}`)
                     else {
-                        fs.writeSync(fd, safeStorage.encryptString(JSON.stringify(storage)))
+                        fs.writeSync(fd, safeStorage.encryptString(JSON.stringify(defaults)))
                         fs.closeSync(fd)
-                        res(JSON.stringify(storage))
+                        res(JSON.stringify(defaults))
                     }
                 })
             } else {
@@ -88,8 +54,8 @@ function readData() {
                     res(decrypted)
                 } catch (err) {
                     console.log(err)
-                    fs.writeFileSync(__filepath, safeStorage.encryptString(JSON.stringify(storage)))
-                    res(JSON.stringify(storage))
+                    fs.writeFileSync(__filepath, safeStorage.encryptString(JSON.stringify(defaults)))
+                    res(JSON.stringify(defaults))
                 }
                 
             }
@@ -130,12 +96,12 @@ ipcMain.on('data', (_event, value) => {
     if (ref) ref.webContents.send('instruction', value.instruction)
 })*/
 
-ipcMain.on('stdout', (_, from, args, state) => {
-    mainWindow.webContents.send('stdout', from, args, state)
+ipcMain.on('stdout', (_, from, args) => {
+    mainWindow.webContents.send('stdout', from, args)
 })
 
-ipcMain.on('save', (ev, from, key, data) => {
-    storage[from][key] = data
+ipcMain.on('save', (_, from, key, data) => {
+    modules[from].setStorageKey(key, data)
 })
 
 // TODO try packing this into stdout
@@ -144,21 +110,23 @@ ipcMain.on('state', (_, from, state) => {
 })
 
 ipcMain.on('main:start-module', (_, /** @type {import('./shared_types.d.ts').ModuleName} */ v) => {
-    modules[v] = createWindow(v)
-    modules[v].once('closed', () => {
+    modules[v].createWindow(() => {
         if (mainWindow) mainWindow.webContents.send('state', v, false)
-        delete modules[v]
     })
 })
 
 ipcMain.on('main:stop-module', (_, v) => {
-    if (v in modules) modules[v].webContents.send('close')
+    modules[v].closeWindow()
 })
 
 
 app.once('before-quit', async (ev) => {
     ev.preventDefault()
-    await writeData(storage)
+    const st = dirarr.reduce((acc, cur) => {
+        acc[cur] = modules[cur].getStorage()
+        return acc
+    }, {})
+    await writeData(st)
     app.quit()
 })
 
@@ -166,14 +134,14 @@ app.once('before-quit', async (ev) => {
 app.on('window-all-closed', () => console.log('all closed'))
 
 
-
-
-
-
-app.whenReady().then(async () => {
+app.whenReady().then(async () => {    
     console.log('ready')
-    const temporary = await readData()
-    storage = JSON.parse(temporary)
+    const temporary = await readData(storageDefaults)
+    /** @type {import('./shared_types.d.ts').MultiModuleStorage} */
+    const parsed = JSON.parse(temporary)
+    for (const key in parsed) {
+        if (key in modules) modules[key].setStorage(parsed[key])
+    }
     mainWindow = createMainWindow(temporary, JSON.stringify(dirarr))
     mainWindow.once('closed', () => {
         mainWindow = null
@@ -182,5 +150,4 @@ app.whenReady().then(async () => {
 }).catch((err) => {
     console.error(err)
     app.quit()
-    
 })

@@ -59,7 +59,7 @@ declare global {
 
 
 type Modules = {
-    [key in ModuleName]: Module
+    [key: string]: Module
 }
 
 type TaskWrapper = {

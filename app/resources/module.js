@@ -1,12 +1,12 @@
 import { BrowserWindow } from "electron"
-import fs from "node:fs"
+import fs from "node:fs/promises"
 import path from "node:path"
 
 const __dir = path.join(process.cwd(), '/app')
 const __moduledir = path.join(__dir, '/modules')
 
 export class Module {
-    /** @public */
+    /** @public @readonly */
     name
     /** @type {import("../shared_types.d.ts").ModuleData} @protected */
     data
@@ -17,14 +17,20 @@ export class Module {
     /** @param {string} name */
     constructor(name) {
         this.name = name
-        this.data = JSON.parse(fs.readFileSync(path.join(__moduledir, `/${name}/${name}.desc.json`), {encoding: "utf-8"}))
+        this.data = null
         this.storage = {}
         this.ref = null
     }
 
-    /** @param {Function} onClose  */
+    async initialise() {
+        this.data = JSON.parse(await fs.readFile(path.join(__moduledir, `/${this.name}/${this.name}.desc.json`), {encoding: "utf-8"}))
+        console.log(`Module ${this.name} initialised`)
+    }
+
+    /** @param {Function} [onClose] @public */
     createWindow(onClose) {
-        const win = new BrowserWindow({
+        if (this.ref) throw new ReferenceError('Window already exists')
+        this.ref = new BrowserWindow({
             width: 800,
             height: 600,
             show: false,
@@ -38,12 +44,66 @@ export class Module {
             }
         })
 
-        win.loadFile(path.join(__moduledir, `/${this.name}/${this.name}.html`))
+        this.ref.loadFile(path.join(__moduledir, `/${this.name}/${this.name}.html`))
 
-        if (this.data.shown) win.once('ready-to-show', () => win.show())
+        if (this.data.shown) this.ref.once('ready-to-show', this.ref.show)
 
-        win.once(('closed'), onClose)
-        
-        this.ref = win
-    }    
+        this.ref.once(('closed'), () => {
+            onClose()
+            this.ref = null
+        })
+    }
+
+    /** @public */
+    closeWindow() {
+        if (!this.ref) throw new ReferenceError('Window does not exist')
+        this.ref.webContents.send('close')
+    }
+
+    /** @param {import("../shared_types.d.ts").ModuleStorage} storage @public */
+    setStorage(storage) {
+        this.storage = storage
+    }
+
+    /**
+     * @param {string} key 
+     * @param {string | boolean} value 
+     */
+    setStorageKey(key, value) {
+        this.storage[key] = value
+    }
+
+    /**
+     * @returns {import("../shared_types.d.ts").ModuleStorage} 
+     * @public 
+     */
+    getStorage() {
+        return {...this.storage}
+    }
+}
+
+/**
+ * @param {string} data 
+ * @param {string} names 
+ * @returns {BrowserWindow}
+ */
+export function createMainWindow(data, names) {
+    const win = new BrowserWindow({
+        width: 800,
+        minWidth: 700,
+        height: 600,
+        minHeight: 550,
+        autoHideMenuBar: true,
+        show: false,
+        webPreferences: {
+            preload: path.join(__dir, 'preload.cjs'),
+            additionalArguments: [names, data]
+        }
+    })
+
+    win.loadFile(path.join(__dir, 'index.html'))
+
+    win.once('ready-to-show', () => win.show())
+
+    return win
 }
