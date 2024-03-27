@@ -1,4 +1,5 @@
 import { BrowserWindow } from "electron"
+import { Module } from "./resources/module.js"
 
 
 type ModuleName = 'twitchpubsub' | 'modelviewer' | 'server' | 'elevenlabs' 
@@ -58,9 +59,17 @@ declare global {
 
 
 type Modules = {
-    [key in ModuleName]?: BrowserWindow
+    [key in ModuleName]: Module
 }
 
 type TaskWrapper = {
     (): Promise<void>
+}
+
+type ModuleData = {
+    "displayName": string,
+    "type": string,
+    "mode": string,
+    "secure": boolean,
+    "shown": boolean
 }

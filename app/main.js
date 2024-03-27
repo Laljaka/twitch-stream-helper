@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain, utilityProcess, safeStorage } from 'electron'
 import fs from 'node:fs'
 import path from "node:path"
+import { Module } from './resources/module.js'
 
 const __dir = path.join(process.cwd(), '/app')
 const __moduledir = path.join(__dir, '/modules')
@@ -8,6 +9,10 @@ const __filepath = path.join(process.cwd(), '/content/storage.bin')
 
 /** @type {BrowserWindow} */
 let mainWindow
+
+const mod = new Module('a')
+
+
 
 const dirarr = fs.readdirSync(__moduledir, { withFileTypes: true })
     .filter((dir) => dir.isDirectory())
@@ -27,15 +32,6 @@ let storage = dirarr.reduce((acc, cur) => {
 
 console.log(storage)
 
-/*
-const moduleMapping = dirarr.reduce((acc, cur) => {
-    const ref = JSON.parse(fs.readFileSync(path.join(__moduledir, `/${cur}/${cur}.desc.json`), {encoding: "utf-8"})).shown
-    if (ref) acc[cur] = createWindow
-    else acc[cur] = createHiddenWindow
-    return acc
-}, {})
-console.log(moduleMapping)
-*/
 
 /** @type {import('./shared_types.d.ts').Modules} */
 const modules = {}
@@ -68,52 +64,7 @@ function createMainWindow(data, names) {
     return win
 }
 
-/*
-function createHiddenWindow(moduleName) {
-    const win = new BrowserWindow({
-        width: 200,
-        height: 200,
-        show: false,
-        webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false,
-            additionalArguments: [JSON.stringify(storage[moduleName])]
-        }
-    })
 
-    win.loadFile(path.join(__moduledir, `/${moduleName}/${moduleName}.html`))
-
-    return win
-}
-*/
-
-/**
- * 
- * @param {import('./shared_types.d.ts').ModuleName} moduleName 
- * @returns {BrowserWindow}
- */
-function createWindow(moduleName) {
-    const ref = moduleInfo[moduleName]
-    const win = new BrowserWindow({
-        width: 800,
-        height: 600,
-        show: false,
-        autoHideMenuBar: true,
-        webPreferences: {
-            nodeIntegration: !ref.secure,
-            contextIsolation: ref.secure,
-            preload: ref.secure? path.join(__dir, `modules/${moduleName}/${moduleName}.preload.cjs`) : null,
-            //preload: path.join(__dirname, `modules/${moduleName}/${moduleName}.preload.js`),
-            additionalArguments: [JSON.stringify(storage[moduleName])]
-        }
-    })
-
-    win.loadFile(path.join(__moduledir, `/${moduleName}/${moduleName}.html`))
-
-    if (ref.shown) win.once('ready-to-show', () => win.show())
-    
-    return win
-}
 
 /**
  * 
@@ -223,7 +174,7 @@ app.whenReady().then(async () => {
     console.log('ready')
     const temporary = await readData()
     storage = JSON.parse(temporary)
-    mainWindow = createMainWindow(temporary, JSON.stringify(moduleInfo))
+    mainWindow = createMainWindow(temporary, JSON.stringify(dirarr))
     mainWindow.once('closed', () => {
         mainWindow = null
         app.quit()
