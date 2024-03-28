@@ -1,35 +1,36 @@
 /**
  * @param {Function} func 
- * @param {...any} args 
- * @returns {[any, any]}
+ * @returns {(...args: any[]) => [Error | undefined, any | undefined]}
  */
-export function oneLineError(func, ...args) {
-    let err
-    let res
-
-    try {
-        res = func(...args)
-    } catch (error) {
-        err = error
+export function oneLineError(func) {
+    return function(...args) {
+        let err
+        let res
+        try {
+            res = func(...args)
+        } catch (error) {
+            if (error instanceof Error) err = error
+            else if (typeof error === 'string') err = new Error(error)
+        }
+        return [err, res]
     }
-
-    return [err, res]
 }
 
 /**
- * @param {Function} func 
- * @param {...any} args 
- * @returns {Promise<[any, any]>}
+ * @param {Function} func  
+ * @returns {(...args: any[]) => Promise<[Error | undefined, any | undefined]>}
  */
-export async function oneLineErrorPromise(func, ...args) {
-    let err
-    let res
-
-    try {
-        res = await func(...args)
-    } catch (error) {
-        err = error
+export function oneLineErrorPromise(func) {
+    return async function(...args) {
+        let err
+        let res
+        try {
+            res = await func(...args)
+        } catch (error) {
+            if (error instanceof Error) err = error
+            else if (typeof error === 'string') err = new Error(error)
+        }
+    
+        return [err, res]
     }
-
-    return [err, res]
 }
