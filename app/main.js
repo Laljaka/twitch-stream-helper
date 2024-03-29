@@ -14,17 +14,22 @@ const dirarr = fs.readdirSync(__moduledir, { withFileTypes: true })
     .filter((dir) => dir.isDirectory())
     .map((dir) => dir.name)
 
+const initArray = []
+
 /** @type {import('./shared_types.d.ts').Modules} */
 const modules = dirarr.reduce((acc, cur) => {
-    acc[cur] = new Module(cur)
+    const ref = new Module(cur)
+    initArray.push(ref.initialise())
+    acc[cur] = ref
     return acc
 }, {})
 
-const initArray = []
-for (const key in modules) {
-    initArray.push(modules[key].initialise())
+const promiseArray = await Promise.allSettled(initArray)
+for (const prom of promiseArray) {
+    if (prom.status === 'rejected') {
+        delete modules[prom.reason]
+    }
 }
-await Promise.all(initArray)
 
 /** @type {import('./shared_types.d.ts').MultiModuleStorage} @readonly */
 const storageDefaults = dirarr.reduce((acc, cur) => {
@@ -122,10 +127,10 @@ ipcMain.on('main:stop-module', (_, v) => {
 
 app.once('before-quit', async (ev) => {
     ev.preventDefault()
-    const st = dirarr.reduce((acc, cur) => {
-        acc[cur] = modules[cur].getStorage()
-        return acc
-    }, {})
+    const st = {}
+    for (const key in modules) {
+        st[key] = modules[key].getStorage()
+    }
     await writeData(st)
     app.quit()
 })
@@ -142,7 +147,11 @@ app.whenReady().then(async () => {
     for (const key in parsed) {
         if (key in modules) modules[key].setStorage(parsed[key])
     }
-    mainWindow = createMainWindow(temporary, JSON.stringify(dirarr))
+    const toSend = {}
+    for (const key in modules) {
+        toSend[key] = modules[key].data.displayName
+    }
+    mainWindow = createMainWindow(temporary, JSON.stringify(toSend))
     mainWindow.once('closed', () => {
         mainWindow = null
         app.quit()

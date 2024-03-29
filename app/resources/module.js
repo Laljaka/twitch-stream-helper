@@ -5,10 +5,18 @@ import path from "node:path"
 const __dir = path.join(process.cwd(), '/app')
 const __moduledir = path.join(__dir, '/modules')
 
+const schema = {
+    "displayName": "string",
+    "type": "string",
+    "mode": "string",
+    "secure": "boolean",
+    "shown": "boolean"
+}
+
 export class Module {
     /** @public @readonly */
     name
-    /** @type {import("../shared_types.d.ts").ModuleData} @protected */
+    /** @type {import("../shared_types.d.ts").ModuleData} @public */
     data
     /** @type {import("../shared_types.d.ts").ModuleStorage} @protected */
     storage
@@ -23,8 +31,18 @@ export class Module {
     }
 
     async initialise() {
-        this.data = JSON.parse(await fs.readFile(path.join(__moduledir, `/${this.name}/${this.name}.desc.json`), {encoding: "utf-8"}))
-        console.log(`Module ${this.name} initialised`)
+        try {
+            this.data = JSON.parse(await fs.readFile(path.join(__moduledir, `/${this.name}/${this.name}.desc.json`), {encoding: "utf-8"}))
+            for (const key in schema) {
+                if (!(key in this.data) || typeof this.data[key] !== schema[key]) {
+                    throw 'pew'
+                }
+            }
+            Object.freeze(this.data)
+            return this.name
+        } catch (_) {
+            throw this.name
+        }
     }
 
     /** @param {Function} [onClose] @public */
@@ -44,9 +62,9 @@ export class Module {
             }
         })
 
-        this.ref.loadFile(path.join(__moduledir, `/${this.name}/${this.name}.html`))
-
         if (this.data.shown) this.ref.once('ready-to-show', this.ref.show)
+
+        this.ref.loadFile(path.join(__moduledir, `/${this.name}/${this.name}.html`))
 
         this.ref.once(('closed'), () => {
             onClose()
