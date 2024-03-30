@@ -1,17 +1,13 @@
 const { contextBridge, ipcRenderer } = require('electron/renderer')
 
-let storage
-const imp = process.argv.slice(-2)
-try {
-    storage = JSON.parse(imp[1])
-} catch (error) {
-    window.close()
-}
-console.log(imp[0])
+
+const imp = process.argv.slice(-1)
+
+const displayNames = JSON.parse(imp[0])
 
 
 contextBridge.exposeInMainWorld('mainApi', {
-    storage: storage,
+    data: displayNames,
     toConsole: (callback) => {ipcRenderer.on('stdout', (_, from, v) => callback(from, v))},
     save: (from, key, value) => ipcRenderer.send('save', from, key, value),
     startModule: (value) => ipcRenderer.send('main:start-module', value),

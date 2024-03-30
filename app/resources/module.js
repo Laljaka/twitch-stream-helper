@@ -102,10 +102,9 @@ export class Module {
 
 /**
  * @param {string} data 
- * @param {string} names 
  * @returns {BrowserWindow}
  */
-export function createMainWindow(data, names) {
+export function createMainWindow(data) {
     const win = new BrowserWindow({
         width: 800,
         minWidth: 700,
@@ -115,7 +114,7 @@ export function createMainWindow(data, names) {
         show: false,
         webPreferences: {
             preload: path.join(__dir, 'preload.cjs'),
-            additionalArguments: [names, data]
+            additionalArguments: [data]
         }
     })
 

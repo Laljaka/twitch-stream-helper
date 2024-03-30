@@ -1,14 +1,22 @@
+const menu = document.querySelector('menu')
+
+for (const key in window.mainApi.data) {
+    const ref = document.createElement('li')
+    ref.id = key
+    ref.className = 'inactive'
+    const h3 = document.createElement('h3')
+    h3.innerText = window.mainApi.data[key].displayName
+    ref.appendChild(h3)
+    menu.prepend(ref)
+}
+
+
+
+
 /** @type {string} */
 let context
 
 const modules = document.querySelectorAll('.inactive')
-
-const displayNames = {
-    twitchpubsub: "Twitch API",
-    modelviewer: "Renderer",
-    server: "HTTP Server",
-    elevenlabs: "Elevenlabs"
-}
 
 modules.forEach(async (module, key) => {
     module.addEventListener('click', () => {
@@ -33,7 +41,7 @@ modules.forEach(async (module, key) => {
 window.mainApi.toConsole((from, v) => {
     const ref = document.getElementById(`-${from}`).querySelector('samp')
     const spn = document.createElement('span')
-    spn.innerText = `${displayNames[from]} :> ${v}`
+    spn.innerText = `${window.mainApi.data[from].displayName} :> ${v}`
     ref.appendChild(spn)
 })
 
@@ -56,10 +64,10 @@ window.mainApi.stateUpdate((from, state) => {
 })
 
 
-for (let key in window.mainApi.storage) {
+for (let key in window.mainApi.data) {
     const form = document.getElementById(`-${key}`).querySelector('form')
     /** @type {import("./shared_types.d.ts").ModuleStorage} */
-    const mod = window.mainApi.storage[key]
+    const mod = window.mainApi.data[key].storage
     for (let name in mod) {
         const test = mod[name]
         const inp = form.querySelector(`[name="${name}"]`)

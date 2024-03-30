@@ -38,7 +38,7 @@ declare global {
             ready: () => void
         }
         mainApi: {
-            storage: MultiModuleStorage
+            data: Send
             //startModule: (v: string) => Promise<void>
             //stopModule: (v: string) => Promise<void>
             toConsole: (callback: Function) => void
@@ -72,4 +72,11 @@ type ModuleData = {
     "mode": string,
     "secure": boolean,
     "shown": boolean
+}
+
+type Send = {
+    [key: string]: {
+        displayName: string
+        storage: ModuleStorage
+    }
 }

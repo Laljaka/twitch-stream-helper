@@ -39,7 +39,7 @@ const storageDefaults = dirarr.reduce((acc, cur) => {
 
 /**
  * @param {import('./shared_types.d.ts').MultiModuleStorage} defaults 
- * @returns {Promise<string>}
+ * @returns {Promise<import('./shared_types.d.ts').MultiModuleStorage>}
  */
 function readData(defaults) {
     return new Promise((res, rej) => {
@@ -50,17 +50,17 @@ function readData(defaults) {
                     else {
                         fs.writeSync(fd, safeStorage.encryptString(JSON.stringify(defaults)))
                         fs.closeSync(fd)
-                        res(JSON.stringify(defaults))
+                        res(defaults)
                     }
                 })
             } else {
                 try {
                     const decrypted = safeStorage.decryptString(data)
-                    res(decrypted)
+                    res(JSON.parse(decrypted))
                 } catch (err) {
                     console.log(err)
                     fs.writeFileSync(__filepath, safeStorage.encryptString(JSON.stringify(defaults)))
-                    res(JSON.stringify(defaults))
+                    res(defaults)
                 }
                 
             }
@@ -141,17 +141,17 @@ app.on('window-all-closed', () => console.log('all closed'))
 
 app.whenReady().then(async () => {    
     console.log('ready')
-    const temporary = await readData(storageDefaults)
-    /** @type {import('./shared_types.d.ts').MultiModuleStorage} */
-    const parsed = JSON.parse(temporary)
+    const parsed = await readData(storageDefaults)
     for (const key in parsed) {
         if (key in modules) modules[key].setStorage(parsed[key])
     }
     const toSend = {}
     for (const key in modules) {
-        toSend[key] = modules[key].data.displayName
+        toSend[key] = {} 
+        toSend[key]['displayName'] = modules[key].data.displayName
+        toSend[key]['storage'] = modules[key].getStorage()
     }
-    mainWindow = createMainWindow(temporary, JSON.stringify(toSend))
+    mainWindow = createMainWindow(JSON.stringify(toSend))
     mainWindow.once('closed', () => {
         mainWindow = null
         app.quit()
