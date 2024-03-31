@@ -124,6 +124,25 @@ ipcMain.on('main:stop-module', (_, v) => {
     modules[v].closeWindow()
 })
 
+ipcMain.handle('main:loadData', () => {
+    const toSend = {}
+    for (const key in modules) {
+        toSend[key] = {} 
+        toSend[key]['displayName'] = modules[key].data.displayName
+        toSend[key]['storage'] = modules[key].getStorage()
+    }
+    return toSend
+})
+
+ipcMain.handle('main:loadHTML', (_, forModule) => {
+    return new Promise((res, rej) => {
+        fs.readFile(path.join(__moduledir, `/${forModule}/${forModule}.desc.html`), {encoding: "utf-8"}, (err, data) => {
+            if (err) rej(err)
+            else res(data)
+        })
+    })
+})
+
 
 app.once('before-quit', async (ev) => {
     ev.preventDefault()
@@ -145,13 +164,8 @@ app.whenReady().then(async () => {
     for (const key in parsed) {
         if (key in modules) modules[key].setStorage(parsed[key])
     }
-    const toSend = {}
-    for (const key in modules) {
-        toSend[key] = {} 
-        toSend[key]['displayName'] = modules[key].data.displayName
-        toSend[key]['storage'] = modules[key].getStorage()
-    }
-    mainWindow = createMainWindow(JSON.stringify(toSend))
+    
+    mainWindow = createMainWindow()
     mainWindow.once('closed', () => {
         mainWindow = null
         app.quit()

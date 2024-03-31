@@ -101,10 +101,9 @@ export class Module {
 }
 
 /**
- * @param {string} data 
  * @returns {BrowserWindow}
  */
-export function createMainWindow(data) {
+export function createMainWindow() {
     const win = new BrowserWindow({
         width: 800,
         minWidth: 700,
@@ -113,8 +112,7 @@ export function createMainWindow(data) {
         autoHideMenuBar: true,
         show: false,
         webPreferences: {
-            preload: path.join(__dir, 'preload.cjs'),
-            additionalArguments: [data]
+            preload: path.join(__dir, 'preload.cjs')
         }
     })
 

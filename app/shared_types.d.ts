@@ -38,7 +38,8 @@ declare global {
             ready: () => void
         }
         mainApi: {
-            data: Send
+            loadData: () => Promise<Send>
+            loadHTML: (mod: string) => Promise<string>
             //startModule: (v: string) => Promise<void>
             //stopModule: (v: string) => Promise<void>
             toConsole: (callback: Function) => void

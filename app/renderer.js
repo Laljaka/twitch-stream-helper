@@ -1,24 +1,49 @@
 const menu = document.querySelector('menu')
 
-for (const key in window.mainApi.data) {
+/** @type {import("./shared_types.d.ts").Send} */
+const dataFromMain = await window.mainApi.loadData()
+
+
+const promises = []
+console.log('before')
+
+for (const key in dataFromMain) {
     const ref = document.createElement('li')
     ref.id = key
     ref.className = 'inactive'
     const h3 = document.createElement('h3')
-    h3.innerText = window.mainApi.data[key].displayName
+    h3.innerText = dataFromMain[key].displayName
     ref.appendChild(h3)
     menu.prepend(ref)
+
+    const form = document.getElementById(`-${key}`).querySelector('form')
+    const prom = window.mainApi.loadHTML(key).then((htttml) => {
+        form.innerHTML = htttml
+    })
+    promises.push(prom)
 }
 
+await Promise.all(promises)
 
-
-
+console.log('after')
 /** @type {string} */
 let context
 
 const modules = document.querySelectorAll('.inactive')
 
-modules.forEach(async (module, key) => {
+modules.forEach((module, key) => {
+    const form = document.getElementById(`-${module.id}`).querySelector('form')
+    /** @type {import("./shared_types.d.ts").ModuleStorage} */
+    const mod = dataFromMain[module.id].storage
+    for (let name in mod) {
+        const test = mod[name]
+        const inp = form.querySelector(`[name="${name}"]`)
+        if (inp instanceof HTMLInputElement) {
+            if (typeof test === 'boolean') inp.checked = test 
+            else inp.value = test
+        }
+    }
+
     module.addEventListener('click', () => {
         document.getElementById('aaa').style.top = `${(70 * key) + 25}px`
         const previousReference = document.getElementById(`-${context}`)
@@ -41,7 +66,7 @@ modules.forEach(async (module, key) => {
 window.mainApi.toConsole((from, v) => {
     const ref = document.getElementById(`-${from}`).querySelector('samp')
     const spn = document.createElement('span')
-    spn.innerText = `${window.mainApi.data[from].displayName} :> ${v}`
+    spn.innerText = `${dataFromMain[from].displayName} :> ${v}`
     ref.appendChild(spn)
 })
 
@@ -63,20 +88,6 @@ window.mainApi.stateUpdate((from, state) => {
     }
 })
 
-
-for (let key in window.mainApi.data) {
-    const form = document.getElementById(`-${key}`).querySelector('form')
-    /** @type {import("./shared_types.d.ts").ModuleStorage} */
-    const mod = window.mainApi.data[key].storage
-    for (let name in mod) {
-        const test = mod[name]
-        const inp = form.querySelector(`[name="${name}"]`)
-        if (inp instanceof HTMLInputElement) {
-            if (typeof test === 'boolean') inp.checked = test 
-            else inp.value = test
-        }
-    }
-}
 
 const cSwitches = document.querySelectorAll(".switch")
 
