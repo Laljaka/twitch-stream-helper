@@ -1,42 +1,16 @@
 import { BrowserWindow } from "electron"
 import { Module } from "./resources/module.js"
 
-
-type ModuleName = 'twitchpubsub' | 'modelviewer' | 'server' | 'elevenlabs' 
-
-type Data = {
-    //'from': ModuleName,
-    to: ModuleName,
-    instruction: Array<any>
-}
-
-type StdOut = {
-    from: ModuleName,
-    data: string
-}
-
 type ModuleStorage = {
     [key: string]: string | boolean
 }
 
 type MultiModuleStorage = {
-    [key in ModuleName]?: ModuleStorage
+    [key: string]: ModuleStorage
 }
-
-type ConstantModule = {
-    [key in ModuleName]: Function
-}
-
-//type ModuleName = keyof MultiModuleStorage
 
 declare global {
     interface Window {
-        rendererApi: {
-            toClose: (callback: Function) => void
-            stdout: (message: string) => void
-            onData: (callback: Function) => void
-            ready: () => void
-        }
         mainApi: {
             loadData: () => Promise<Send>
             loadHTML: (mod: string) => Promise<string>
@@ -48,16 +22,8 @@ declare global {
             startModule: (v: string) => void
             stopModule: (v: string) => void
           }
-        elevenlabsApi: {
-            onClose: (callback: Function) => void
-            credentials : ModuleStorage
-            onTask: (callback: Function) => void
-            stdout: (message: string) => void
-            ready: () => void
-        }
     }
 }
-
 
 type Modules = {
     [key: string]: Module
