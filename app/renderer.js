@@ -7,19 +7,45 @@ const dataFromMain = await window.mainApi.loadData()
 const promises = []
 console.log('before')
 
+const mainElement = document.querySelector('main')
+
 for (const key in dataFromMain) {
     const ref = document.createElement('li')
     ref.id = key
     ref.className = 'inactive'
-    const h3 = document.createElement('h3')
-    h3.innerText = dataFromMain[key].displayName
-    ref.appendChild(h3)
+    ref.innerHTML = `<h3>${dataFromMain[key].displayName}</h3>`
     menu.prepend(ref)
 
-    const form = document.getElementById(`-${key}`).querySelector('form')
+    const settings = document.createElement('div')
+    settings.className = 'module-settings'
+    settings.id = `-${key}`
+    settings.dataset['id'] = key
+    settings.innerHTML = `
+    <fieldset class="wrapper setting"><legend>Settings</legend>
+        <form action=""></form>
+    </fieldset>
+    <fieldset class="wrapper setting"><legend>Controls</legend>
+        <label class="switch">
+            <input type="checkbox">
+            <span class="thumb"></span>
+        </label>
+    </fieldset>
+    <samp class="wrapper">
+        <span>${dataFromMain[key].displayName} :> </span>
+    </samp>`
+    mainElement.appendChild(settings)
+
+    const form = settings.querySelector('form')
     const prom = window.mainApi.loadHTML(key).then((htttml) => {
         form.innerHTML = htttml
+        form.querySelectorAll("input[type='password']").forEach((inp) => {
+            const hide = document.createElement('input')
+            hide.type = 'checkbox'
+            hide.className = 'reveal'
+            inp.after(hide)//`<input type="checkbox" class="reveal">`)
+        }) 
     })
+
     promises.push(prom)
 }
 
@@ -30,6 +56,7 @@ console.log('after')
 let context
 
 const modules = document.querySelectorAll('.inactive')
+const aaa = document.getElementById('aaa')
 
 modules.forEach((module, key) => {
     const form = document.getElementById(`-${module.id}`).querySelector('form')
@@ -45,22 +72,13 @@ modules.forEach((module, key) => {
     }
 
     module.addEventListener('click', () => {
-        document.getElementById('aaa').style.top = `${(70 * key) + 25}px`
+        aaa.style.top = `${(70 * key) + 25}px`
         const previousReference = document.getElementById(`-${context}`)
         if (previousReference) previousReference.style.display = 'none'
         context = module.id
         const settingsReference = document.getElementById(`-${context}`)
         settingsReference.style.display = 'grid'
     })
-
-  /*
-  const form = document.getElementById(`-${module.id}`)!.querySelector('form')!
-  const mod = api.storage[module.id as keyof MultiModuleStorage]
-  for (let elem of form.elements) {
-    if (elem instanceof HTMLInputElement && elem.name in mod) {
-      elem.value = mod[elem.name as keyof typeof mod]
-    }
-  }*/
 })
 
 window.mainApi.toConsole((from, v) => {
@@ -87,7 +105,6 @@ window.mainApi.stateUpdate((from, state) => {
         if (checkbox.checked) checkbox.checked = false
     }
 })
-
 
 const cSwitches = document.querySelectorAll(".switch")
 

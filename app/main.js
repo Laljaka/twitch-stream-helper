@@ -69,10 +69,7 @@ function readData(defaults) {
     })
 }
 
-/**
- * 
- * @param {import('./shared_types.d.ts').ModuleName} moduleName 
- */
+
 function registerModule(moduleName) {
     ipcMain.on(`${moduleName}:readyState`, (_, args) => {
         mainWindow.webContents.send(`${moduleName}:readyState`, args)
@@ -114,7 +111,7 @@ ipcMain.on('state', (_, from, state) => {
     mainWindow.webContents.send('state', from, state)
 })
 
-ipcMain.on('main:start-module', (_, /** @type {import('./shared_types.d.ts').ModuleName} */ v) => {
+ipcMain.on('main:start-module', (_, v) => {
     modules[v].createWindow(() => {
         if (mainWindow) mainWindow.webContents.send('state', v, false)
     })
@@ -146,6 +143,7 @@ ipcMain.handle('main:loadHTML', (_, forModule) => {
 
 app.once('before-quit', async (ev) => {
     ev.preventDefault()
+    /** @type {import('./shared_types.d.ts').MultiModuleStorage} */
     const st = {}
     for (const key in modules) {
         st[key] = modules[key].getStorage()
