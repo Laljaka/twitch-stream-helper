@@ -1,14 +1,16 @@
 import * as THREE from "three";
 import { OBJLoader } from "three/addons";
 
-window.rendererApi.toClose(() => {
+window.modelviewerApi.toClose(() => {
     window.close()
 })
 
 window.addEventListener('error', (ev) => {
-    window.rendererApi.stdout(ev.message)
+    window.modelviewerApi.stdout(ev.message)
     window.close()
 })
+
+window.modelviewerApi.stdout(window.modelviewerApi.credentials)
 
 const scene = new THREE.Scene()
 scene.background = new THREE.Color(0x00ff00)
@@ -40,15 +42,15 @@ scene.add( light );
 let xrot = 0.005
 let yrot = 0.005
 
-window.rendererApi.onData((args) => {
+window.modelviewerApi.onData((args) => {
     xrot = parseFloat(args)
 })
 
-window.rendererApi.stdout('loading the model')
+window.modelviewerApi.stdout('loading the model')
 mtlload.load('../../../content/rat_albedo.png', (texture) => {
-    window.rendererApi.stdout('texture loaded')
+    window.modelviewerApi.stdout('texture loaded')
     loader.load('../../../content/eeee.obj', (obj) => {
-        window.rendererApi.stdout('model loaded')
+        window.modelviewerApi.stdout('model loaded')
         obj.traverse((child) => {
             if (child instanceof THREE.Mesh) child.material.map = texture
         })
@@ -65,14 +67,14 @@ mtlload.load('../../../content/rat_albedo.png', (texture) => {
                 delta = delta % interval;
             }
         }
-        window.rendererApi.stdout('displaying scene')
-        window.rendererApi.ready()
+        window.modelviewerApi.stdout('displaying scene')
+        window.modelviewerApi.ready()
         animate()
     }, undefined, (err) => {
-        window.rendererApi.stdout(`an error has occured ${err}`)
+        window.modelviewerApi.stdout(`an error has occured ${err}`)
         window.close()
     })
 }, undefined, (err) => {
-    window.rendererApi.stdout(`an error has occured ${err}`)
+    window.modelviewerApi.stdout(`an error has occured ${err}`)
     window.close()
 })

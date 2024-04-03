@@ -2,6 +2,6 @@
     "displayName": "Twitch API",
     "type": "sender",
     "mode": "window",
-    "secure": false,
+    "secure": true,
     "shown": false
 }

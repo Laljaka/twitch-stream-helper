@@ -185,3 +185,5 @@ window.addEventListener('error', (ev) => {
     window.elevenlabsApi.stdout(ev.message)
     window.close()
 })
+
+window.elevenlabsApi.stdout(window.elevenlabsApi.credentials)

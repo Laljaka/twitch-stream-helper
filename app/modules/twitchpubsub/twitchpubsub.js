@@ -1,9 +1,9 @@
-const { ipcRenderer } = require('electron/renderer')
-
 /** @type {NodeJS.Timeout} */
 let timeout
 
 let socket = connect()
+
+window.twitchpubsubApi.stdout(window.twitchpubsubApi.credentials)
 
 //TODO explore this reference of a websocket in the callback of the event listener
 
@@ -75,7 +75,7 @@ async function sub() {
 
 // TODO check if reconnected websocket registers events
 function reconnect(reconnect_url = null) {
-    send('Connection lost, recconecting...')
+    window.twitchpubsubApi.stdout('Connection lost, recconecting...')
     clearTimeout(timeout)
     disconnect(socket)
     if (reconnect_url) {
@@ -86,7 +86,7 @@ function reconnect(reconnect_url = null) {
 }
 
 function opened() {
-    send("Connected to Twitch")
+    window.twitchpubsubApi.stdout("Connected to Twitch")
 }
 
 /** @param {MessageEvent<any>} data  */
@@ -95,11 +95,11 @@ async function message(data) {
     switch (json.metadata.message_type) {
         case "session_welcome":
             if (SID !== json.payload.session.id) {
-                send('Received session ID, subscribing to events...')
+                window.twitchpubsubApi.stdout('Received session ID, subscribing to events...')
                 SID = json.payload.session.id
                 await unsub()
                 await sub()
-                send('Subscribed to events!')
+                window.twitchpubsubApi.stdout('Subscribed to events!')
             }
             timeout = setTimeout(reconnect, 100000)
             break
@@ -115,22 +115,22 @@ async function message(data) {
             timeout = setTimeout(reconnect, 100000)
             switch (json.payload.event.reward.title) {
                 case "Spin the rat right!":
-                    ipcRenderer.send('websocket', { type: "data", to: "3d", message: { axis: "y" , amount: 0.15 } })
+                    //ipcRenderer.send('websocket', { type: "data", to: "3d", message: { axis: "y" , amount: 0.15 } })
                     break
                 case "Spin the rat up!":
-                    ipcRenderer.send('websocket', { type: "data", to: "3d", message: { axis: "x" , amount: -0.15 } })
+                    //ipcRenderer.send('websocket', { type: "data", to: "3d", message: { axis: "x" , amount: -0.15 } })
                     break
                 case "Spin the rat down!":
-                    ipcRenderer.send('websocket', { type: "data", to: "3d", message: { axis: "x" , amount: 0.15 } })
+                    //ipcRenderer.send('websocket', { type: "data", to: "3d", message: { axis: "x" , amount: 0.15 } })
                     break
                 case "Spin the rat left!":
-                    ipcRenderer.send('websocket', { type: "data", to: "3d", message: { axis: "y" , amount: -0.15 } })
+                    //ipcRenderer.send('websocket', { type: "data", to: "3d", message: { axis: "y" , amount: -0.15 } })
                     break
                 case "TTS Glukhar from Tarkov":
-                    ipcRenderer.send('websocket', { type: "data", to: "AI", message: { voice: "Glukhar" , text: json.payload.event.user_input } })
+                    //ipcRenderer.send('websocket', { type: "data", to: "AI", message: { voice: "Glukhar" , text: json.payload.event.user_input } })
                     break
                 case "TTS Birdeye from Tarkov":
-                    ipcRenderer.send('websocket', { type: "data", to: "AI", message: { voice: "Birdeye" , text: json.payload.event.user_input } })
+                    //ipcRenderer.send('websocket', { type: "data", to: "AI", message: { voice: "Birdeye" , text: json.payload.event.user_input } })
                     break
             }
             break
@@ -142,26 +142,14 @@ async function message(data) {
 }
 
 
-ipcRenderer.on('close', () => {
-    shutdown()
-})
+window.twitchpubsubApi.onClose(shutdown)
 
-/**
- * 
- * @param {string} data 
- */
-function send(data) {
-    ipcRenderer.send('stdout', 'twitchpubsub', data)
-}
+window.twitchpubsubApi.ready()
 
-ipcRenderer.send('state', 'twitchpubsub', true)
 
-/**
- * 
- * @param {string} [reason]
- */
-function shutdown(reason) {
+//TODO explore window refs inside callbacks 
+function shutdown() {
     disconnect(socket)
-    if (reason) send(reason)
     window.close() 
 }
+

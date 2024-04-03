@@ -56,16 +56,15 @@ export class Module {
             webPreferences: {
                 nodeIntegration: !this.data.secure,
                 contextIsolation: this.data.secure,
-                preload: this.data.secure? path.join(__dir, `modules/${this.name}/${this.name}.preload.cjs`) : null,
+                preload: path.join(__dir, `modules/${this.name}/${this.name}.preload.cjs`),
                 //preload: path.join(__dirname, `modules/${moduleName}/${moduleName}.preload.js`),
-                additionalArguments: [JSON.stringify(this.storage)]
+                additionalArguments: [`:;:${JSON.stringify(this.storage)}`]
             }
         })
 
         if (this.data.shown) this.ref.once('ready-to-show', this.ref.show)
 
         this.ref.loadFile(path.join(__moduledir, `/${this.name}/${this.name}.html`))
-
         this.ref.once(('closed'), () => {
             onClose()
             this.ref = null

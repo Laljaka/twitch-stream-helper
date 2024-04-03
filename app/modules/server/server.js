@@ -1,4 +1,3 @@
-const { ipcRenderer } = require('electron/renderer')
 //import http from 'node:http'
 const http = require('node:http')
 //import fs from 'node:fs/promises'
@@ -8,7 +7,7 @@ const fs = require('node:fs/promises')
 const host = "localhost"
 const port = 6969
 
-const __dir = `${process.cwd()}/app/modules/http`
+const __dir = `${process.cwd()}/app/modules/server`
 
 const reqMap = {
     '/polls': ["text/html", fs.readFile(`${__dir}/pages/polls.html`)],
@@ -79,13 +78,14 @@ const server = http.createServer((req, res) => {
 
 server.listen(port, host, () => {
     //window.bridge.sendToMain(`Server is running on http://${host}:${port}`)
-    ipcRenderer.send('stdout', "server", `running on http://${host}:${port}`)
-    ipcRenderer.send('state', 'server', true)
+    window.serverApi.stdout(`running on http://${host}:${port}`)
+    window.serverApi.ready()
 })
 
-
-ipcRenderer.once('close', () => {
+window.serverApi.toClose(() => {
     window.close()
 })
+
+window.serverApi.stdout(window.serverApi.credentials)
 
 
