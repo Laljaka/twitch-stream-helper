@@ -3,9 +3,8 @@ const http = require('node:http')
 //import fs from 'node:fs/promises'
 const fs = require('node:fs/promises')
 
-
-const host = "localhost"
-const port = 6969
+const credentials = JSON.parse(window.serverApi.credentials)
+if (!credentials['port']) credentials['port'] = 6969
 
 const __dir = `${process.cwd()}/app/modules/server`
 
@@ -76,9 +75,9 @@ const server = http.createServer((req, res) => {
     }*/
 })
 
-server.listen(port, host, () => {
+server.listen(credentials['port'], 'localhost', () => {
     //window.bridge.sendToMain(`Server is running on http://${host}:${port}`)
-    window.serverApi.stdout(`running on http://${host}:${port}`)
+    window.serverApi.stdout(`running on http://localhost:${credentials['port']}`)
     window.serverApi.ready()
 })
 

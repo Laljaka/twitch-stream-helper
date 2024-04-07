@@ -1,6 +1,8 @@
 import * as THREE from "three";
 import { OBJLoader } from "three/addons";
 
+const credentials = JSON.parse(window.modelviewerApi.credentials)
+
 window.modelviewerApi.toClose(() => {
     window.close()
 })
@@ -39,17 +41,17 @@ camera.position.z = 3;
 const light = new THREE.AmbientLight( 0xffffff );
 scene.add( light );
 
-let xrot = 0.005
-let yrot = 0.005
+let xrot = credentials['xrot']
+let yrot = credentials['yrot']
 
 window.modelviewerApi.onData((args) => {
     xrot = parseFloat(args)
 })
 
 window.modelviewerApi.stdout('loading the model')
-mtlload.load('../../../content/rat_albedo.png', (texture) => {
+mtlload.load(credentials['texture'], (texture) => {
     window.modelviewerApi.stdout('texture loaded')
-    loader.load('../../../content/eeee.obj', (obj) => {
+    loader.load(credentials['model'], (obj) => {
         window.modelviewerApi.stdout('model loaded')
         obj.traverse((child) => {
             if (child instanceof THREE.Mesh) child.material.map = texture

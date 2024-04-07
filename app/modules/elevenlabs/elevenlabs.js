@@ -30,6 +30,7 @@ class TaskQueue {
     }
 }
 
+const credentials = JSON.parse(window.elevenlabsApi.credentials)
 
 const audio = document.querySelector('audio')
 
@@ -146,20 +147,11 @@ const url = 'https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM/st
 const headers = {
     "Accept": "audio/mpeg",
     "Content-Type": "application/json",
-    "xi-api-key": "5ccfceb65a209171f914fd62ad505720"//window.elevenlabsApi.credentials['key'] as string
+    "xi-api-key": credentials['key']
 }
-
-const data = {
-    "text": "Born and raised in the charming south Born and raised in the charming south Born and raised in the charming south",
-    "model_id": "eleven_multilingual_v2",
-}
-
 
 
 const queue = new TaskQueue()
-
-
-
 
 
 window.elevenlabsApi.onTask((args) => {

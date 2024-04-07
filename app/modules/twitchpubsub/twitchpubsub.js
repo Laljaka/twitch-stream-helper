@@ -1,10 +1,9 @@
 /** @type {NodeJS.Timeout} */
 let timeout
 
+const credentials = JSON.parse(window.twitchpubsubApi.credentials)
+
 let socket = connect()
-
-window.twitchpubsubApi.stdout(window.twitchpubsubApi.credentials)
-
 //TODO explore this reference of a websocket in the callback of the event listener
 
 let SID = ""
@@ -27,20 +26,21 @@ async function unsub() {
     const raw = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
         method: "GET",
         headers: {
-            "Authorization": "Bearer ",
-            "Client-Id": "",
+            "Authorization": `Bearer ${credentials['access']}`,
+            "Client-Id": credentials['clientid'],
             "Content-Type": "application/json"
         }
 
     })
     const response = await raw.json()
+    if ('error' in response) throw new Error(response.error)
     if (response.total !== 0) {
         for (let subs of response.data) {
             await fetch(`https://api.twitch.tv/helix/eventsub/subscriptions?id=${subs.id}`, {
                         method: "DELETE",
                         headers: {
-                            "Authorization": "Bearer ",
-                            "Client-Id": "",
+                            "Authorization": `Bearer ${credentials['access']}`,
+                            "Client-Id": credentials['clientid'],
                             "Content-Type": "application/json"
                         }}
             )
@@ -53,8 +53,8 @@ async function sub() {
     let response = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
         method: "POST",
         headers: {
-            "Authorization": "Bearer ",
-            "Client-Id": "",
+            "Authorization": `Bearer ${credentials['access']}`,
+            "Client-Id": credentials['clientid'],
             "Content-Type": "application/json"
         },
         body: JSON.stringify({
@@ -97,8 +97,14 @@ async function message(data) {
             if (SID !== json.payload.session.id) {
                 window.twitchpubsubApi.stdout('Received session ID, subscribing to events...')
                 SID = json.payload.session.id
-                await unsub()
-                await sub()
+                await unsub().catch((err) => {
+                    window.twitchpubsubApi.stdout(err)
+                    shutdown()
+                })
+                await sub().catch((err) => {
+                    window.twitchpubsubApi.stdout(err)
+                    shutdown()
+                })
                 window.twitchpubsubApi.stdout('Subscribed to events!')
             }
             timeout = setTimeout(reconnect, 100000)
