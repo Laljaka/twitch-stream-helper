@@ -224,6 +224,31 @@ function generatePasswordReveals(elem) {
 
     elem.after(hide)
 }
+
+/** @param {Element} element  */
+function handleFileInput(element) {
+    if (!(element instanceof HTMLInputElement)) return
+    const button = document.createElement('button')
+    button.type = 'button'
+    //button.className = 'fakeButton'
+    const hidden = document.createElement('input')
+    hidden.type = 'hidden'
+    const test = element.dataset['extensions'].split(', ')
+    hidden.name = element.name
+    button.innerText = element.placeholder
+    button.addEventListener('click', async (_) => {
+        //ev.preventDefault()
+        const response = (await window.mainApi.openFile({ title: "Open", properties: ['openFile'], filters: [{name: test[0], extensions: test}]}))
+        if (!response.canceled) {
+            hidden.value = response.filePaths[0]
+            hidden.dispatchEvent(new Event('input', { bubbles: true }))
+        }
+    })
+    element.after(hidden)
+    element.after(button)
+    element.remove()
+}
+
 /**
  * 
  * @param {keyof HTMLElementTagNameMap} type 

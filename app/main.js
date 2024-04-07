@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, utilityProcess, safeStorage } from 'electron'
+import { app, BrowserWindow, ipcMain, utilityProcess, safeStorage, dialog } from 'electron'
 import fs from 'node:fs'
 import path from "node:path"
 import { Module, createMainWindow } from './resources/module.js'
@@ -119,6 +119,10 @@ ipcMain.on('main:start-module', (_, v) => {
 
 ipcMain.on('main:stop-module', (_, v) => {
     modules[v].closeWindow()
+})
+
+ipcMain.handle('main:openFile', (_, options) => {
+    return dialog.showOpenDialog(mainWindow, options)
 })
 
 ipcMain.handle('main:loadData', () => {

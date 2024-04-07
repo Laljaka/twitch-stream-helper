@@ -21,6 +21,7 @@ declare global {
             stateUpdate: (callback: Function) => void
             startModule: (v: string) => void
             stopModule: (v: string) => void
+            openFile: (options: Electron.OpenDialogOptions) => Promise<Electron.OpenDialogReturnValue>
           }
     }
 }
@@ -46,4 +47,10 @@ type Send = {
         displayName: string
         storage: ModuleStorage
     }
+}
+
+type ElementOptions = {
+    id?: string
+    name?: string
+    type?: string
 }
