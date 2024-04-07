@@ -1,11 +1,35 @@
+class TimeLogger {
+    state
+    doodad
+    enabled
+    /** @param {boolean} enabled  */
+    constructor(enabled) {
+        this.state = true
+        this.doodad = 'time'
+        this.enabled = enabled
+    }
+
+    /** @param {string} [args]  */
+    log(args) {
+        if (!this.enabled) return
+        
+        this.state? console.time(this.doodad) : console.timeLog(this.doodad, args)
+        this.state = false
+    }
+}
+
+const l = new TimeLogger(true)
+
 const menu = document.querySelector('menu')
+
+l.log()
 
 /** @type {import("./shared_types.d.ts").Send} */
 const dataFromMain = await window.mainApi.loadData()
-
+l.log('data loaded')
 
 const promises = []
-console.log('before')
+l.log('starting loading')
 
 const mainElement = document.querySelector('main')
 
@@ -51,7 +75,7 @@ for (const key in dataFromMain) {
 
 await Promise.all(promises)
 
-console.log('after')
+l.log('all preloaded')
 /** @type {string} */
 let context
 
@@ -81,6 +105,8 @@ modules.forEach((module, key) => {
     })
 })
 
+l.log('additional set up')
+
 window.mainApi.toConsole((from, v) => {
     const ref = document.getElementById(`-${from}`).querySelector('samp')
     const spn = document.createElement('span')
@@ -106,6 +132,8 @@ window.mainApi.stateUpdate((from, state) => {
     }
 })
 
+l.log('registering api calls')
+
 const cSwitches = document.querySelectorAll(".switch")
 
 cSwitches.forEach((cSwitch) => {
@@ -130,31 +158,8 @@ cSwitches.forEach((cSwitch) => {
     })
 })
 
+l.log('switches')
 
-
-const fformList = document.querySelectorAll('form')
-
-fformList.forEach((fform) => {
-    for (let elem of fform.elements){
-        const ctx = fform.parentElement.parentElement.dataset['id']
-        if (elem instanceof HTMLInputElement && elem.type !== 'submit' && elem.type !== 'button' && elem.className !== 'reveal') {
-            const ref = elem
-            if (ref.type === 'checkbox') ref.addEventListener('input', () => window.mainApi.save(ctx, ref.name, ref.checked))
-            else ref.addEventListener('input', () => window.mainApi.save(ctx, ref.name, ref.value))
-        }
-    }
-})
-
-/** @type {NodeListOf<HTMLInputElement>} */
-const reveals = document.querySelectorAll('.reveal')
-reveals.forEach((v) => {
-    v.addEventListener('change', (ev) => {
-        //const ref = ev.currentTarget
-        const prev = v.previousElementSibling
-        //ref.style.setProperty('--svg', ref.checked? 'url("../content/eye.svg")' : 'url("../content/eye-slash.svg")')
-        if (prev instanceof HTMLInputElement) prev.type = v.checked? 'text' : "password"
-    })
-})
 
 //TODO: MODULES SHOULD NOT WORK WITHOUT API
 
