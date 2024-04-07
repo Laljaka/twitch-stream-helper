@@ -256,7 +256,7 @@ h3 {
   }
 }
 
-input:not([type=checkbox], [type=submit], [type=button]) {
+input:not([type=checkbox], [type=submit], [type=button], [type=file]) {
   height: 1.5rem;
   border: 1px solid grey;
   border-radius: 4px;
@@ -312,6 +312,21 @@ input:not([type=checkbox], [type=submit], [type=button]) {
 
   & > * {
     display: block;
+  }
+}
+
+.fakeButton {
+  display: inline-block;
+  cursor: pointer;
+  background: #000;
+  border-radius: 4px;
+  font-family: "arial-black";
+  font-size: 14px;
+  color: #FFF;
+  padding: 8px 12px;
+
+  &:hover {
+    background: red;
   }
 }
 

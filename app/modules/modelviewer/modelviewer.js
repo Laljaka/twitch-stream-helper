@@ -41,8 +41,8 @@ camera.position.z = 3;
 const light = new THREE.AmbientLight( 0xffffff );
 scene.add( light );
 
-let xrot = credentials['xrot']
-let yrot = credentials['yrot']
+let xrot = credentials['xrot'] / credentials['mul']
+let yrot = credentials['yrot'] / credentials['mul']
 
 window.modelviewerApi.onData((args) => {
     xrot = parseFloat(args)
@@ -73,10 +73,10 @@ mtlload.load(credentials['texture'], (texture) => {
         window.modelviewerApi.ready()
         animate()
     }, undefined, (err) => {
-        window.modelviewerApi.stdout(`an error has occured ${err}`)
+        window.modelviewerApi.stdout(`an error has occured during model load`)
         window.close()
     })
 }, undefined, (err) => {
-    window.modelviewerApi.stdout(`an error has occured ${err}`)
+    window.modelviewerApi.stdout(`an error has occured during texture load`)
     window.close()
 })

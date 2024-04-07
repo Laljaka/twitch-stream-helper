@@ -28,6 +28,33 @@ l.log()
 const dataFromMain = await window.mainApi.loadData()
 l.log('data loaded')
 
+const allowedInputs = ['[type=checkbox]', '[type=password]', '[type=number]', '[type=file]', '[type=url]']
+const allowedElements = ['input', 'label', 'span']
+
+/**
+ * @param {string} forr 
+ * @param {Array<string>} allowed 
+ * @returns 
+ */
+function generateQueryAllowed(forr, allowed) {
+    let res = `${forr}:not(`
+    for (const dis of allowed) {
+        res = res.concat(`${dis}, `)
+    }
+    res = res.slice(0, -2)
+    res = res.concat(')')
+    return res
+}
+
+/** 
+ * @param {HTMLInputElement} elem  
+ * @returns {string | boolean}
+ */
+function deduceReturnType(elem) {
+    if (elem.type === 'checkbox') return elem.checked
+    else return elem.value
+}
+
 const promises = []
 l.log('starting loading')
 
@@ -45,8 +72,7 @@ for (const key in dataFromMain) {
     settings.id = `-${key}`
     settings.dataset['id'] = key
     settings.innerHTML = `
-    <fieldset class="wrapper setting"><legend>Settings</legend>
-        <form action=""></form>
+    <fieldset class="wrapper setting" id="target"><legend>Settings</legend>
     </fieldset>
     <fieldset class="wrapper setting"><legend>Controls</legend>
         <label class="switch">
@@ -58,16 +84,41 @@ for (const key in dataFromMain) {
         <span>${dataFromMain[key].displayName} :> </span>
     </samp>`
     mainElement.appendChild(settings)
+    l.log(`${key} html loaded`)
 
-    const form = settings.querySelector('form')
+    const fieldset = settings.querySelector('#target')
     const prom = window.mainApi.loadHTML(key).then((htttml) => {
+        const form = document.createElement('form')
         form.innerHTML = htttml
-        form.querySelectorAll("input[type='password']").forEach((inp) => {
-            const hide = document.createElement('input')
-            hide.type = 'checkbox'
-            hide.className = 'reveal'
-            inp.after(hide)//`<input type="checkbox" class="reveal">`)
-        }) 
+        l.log(`${key} inner html loaded`)
+
+        form.querySelectorAll(generateQueryAllowed('*', allowedElements)).forEach((elem) => {
+            console.log(elem)
+            elem.remove()
+        })
+
+        // clean up html
+        form.querySelectorAll(generateQueryAllowed('input', allowedInputs)).forEach((elem) => {
+            console.log(elem)
+            elem.remove()
+        })
+        l.log(`${key} cleaned up`)
+
+        form.querySelectorAll("input[type=password]").forEach((inp) => generatePasswordReveals(inp))
+        l.log(`${key} reveals set up`)
+
+        form.querySelectorAll("input[type=file]").forEach((element) => handleFileInput(element))
+        l.log(`${key} file inputs set up`)
+
+        for (let elem of form.elements){
+            if (elem instanceof HTMLInputElement && elem.className !== 'reveal') {
+                const newElem = elem
+                newElem.addEventListener('input', () => window.mainApi.save(key, newElem.name, deduceReturnType(newElem)))
+            }
+        }
+        l.log(`${key} saving set up`)
+
+        fieldset.append(form)
     })
 
     promises.push(prom)
@@ -160,6 +211,32 @@ cSwitches.forEach((cSwitch) => {
 
 l.log('switches')
 
+/** @param {Element} elem  */
+function generatePasswordReveals(elem) {
+    if (!(elem instanceof HTMLInputElement)) return
+    const hide = document.createElement('input')
+    hide.type = 'checkbox'
+    hide.className = 'reveal'
+
+    hide.addEventListener('change', (_) => {
+        elem.type = hide.checked? 'text' : "password"
+    })
+
+    elem.after(hide)
+}
+/**
+ * 
+ * @param {keyof HTMLElementTagNameMap} type 
+ * @param {import("./shared_types.d.ts").ElementOptions} options 
+ */
+function createElementOneLine(type, options) {
+    const el = document.createElement(type)
+    if (options.id) el.id = options.id
+    if (el instanceof HTMLInputElement && options.type) el.type = options.type
+    if ('name' in el && options.name) el.name = options.name
+    return el
+}
 
 //TODO: MODULES SHOULD NOT WORK WITHOUT API
+
 
