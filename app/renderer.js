@@ -89,6 +89,7 @@ for (const key in dataFromMain) {
     const fieldset = settings.querySelector('#target')
     const prom = window.mainApi.loadHTML(key).then((htttml) => {
         const form = document.createElement('form')
+        form.dataset['id'] = key
         form.innerHTML = htttml
         l.log(`${key} inner html loaded`)
 
@@ -113,7 +114,10 @@ for (const key in dataFromMain) {
         for (let elem of form.elements){
             if (elem instanceof HTMLInputElement && elem.className !== 'reveal') {
                 const newElem = elem
-                newElem.addEventListener('input', () => window.mainApi.save(key, newElem.name, deduceReturnType(newElem)))
+                newElem.addEventListener('input', () => { 
+                    console.log(key, newElem.name, 'input')
+                    window.mainApi.save(key, newElem.name, deduceReturnType(newElem))
+                })
             }
         }
         l.log(`${key} saving set up`)
@@ -214,9 +218,7 @@ l.log('switches')
 /** @param {Element} elem  */
 function generatePasswordReveals(elem) {
     if (!(elem instanceof HTMLInputElement)) return
-    const hide = document.createElement('input')
-    hide.type = 'checkbox'
-    hide.className = 'reveal'
+    const hide = createElementOneLine('input', {type: 'checkbox', className: 'reveal'})
 
     hide.addEventListener('change', (_) => {
         elem.type = hide.checked? 'text' : "password"
@@ -249,19 +251,55 @@ function handleFileInput(element) {
     element.remove()
 }
 
+window.addEventListener('contextmenu', async (ev) => {
+    /*
+    if (!(ev.target instanceof Element)) return
+    console.log([...yeildParents(ev.target)])
+    /*
+    for (const parent of yeildParents(ev.target)) {
+        if (!(parent instanceof HTMLFormElement)) continue
+        const resp = await window.mainApi.openContext(ev.x, ev.y, parent.dataset['id'])
+        if (resp === 'clear') {
+            for (const el of parent.elements) {
+                if (el instanceof HTMLInputElement) {
+                    if (el.type === 'checkbox') {
+                        el.checked = false
+                    else el.value = ''
+                }
+            }
+        }
+        break
+    }*/
+    
+})
+
 /**
- * 
- * @param {keyof HTMLElementTagNameMap} type 
+ * @template {keyof HTMLElementTagNameMap} K 
+ * @param {K} type 
  * @param {import("./shared_types.d.ts").ElementOptions} options 
+ * @returns {HTMLElementTagNameMap[K]}
  */
 function createElementOneLine(type, options) {
     const el = document.createElement(type)
     if (options.id) el.id = options.id
-    if (el instanceof HTMLInputElement && options.type) el.type = options.type
+    if ((el instanceof HTMLInputElement || el instanceof HTMLButtonElement) && options.type) el.type = options.type
     if ('name' in el && options.name) el.name = options.name
+    if (options.className) el.className = options.className
     return el
 }
 
+/**
+ * 
+ * @param {Element} el 
+ */
+function* yeildParents(el) {
+    do {
+        yield el
+    } while (el = el.parentElement)
+}
+
 //TODO: MODULES SHOULD NOT WORK WITHOUT API
+
+//TODO: PASSIVE EVENTS
 
 

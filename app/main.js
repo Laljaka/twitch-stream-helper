@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, utilityProcess, safeStorage, dialog } from 'electron'
+import { app, BrowserWindow, ipcMain, utilityProcess, safeStorage, dialog, Menu } from 'electron'
 import fs from 'node:fs'
 import path from "node:path"
 import { Module, createMainWindow } from './resources/module.js'
@@ -143,7 +143,22 @@ ipcMain.handle('main:loadHTML', (_, forModule) => {
         })
     })
 })
-
+/*
+ipcMain.handle('main:ctx', (ev, x, y, id) => {
+    return new Promise((res, rej) => {
+        const menu = Menu.buildFromTemplate([
+            {
+                label: 'Clear data',
+                click: () => {
+                    res('clear')
+                },
+                visible: true
+            }
+        ])
+        menu.popup({ window: mainWindow , x: x, y: y, callback: () => res() })
+    })
+})
+*/
 
 app.once('before-quit', async (ev) => {
     ev.preventDefault()
