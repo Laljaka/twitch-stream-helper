@@ -22,7 +22,7 @@ declare global {
             startModule: (v: string) => void
             stopModule: (v: string) => void
             openFile: (options: Electron.OpenDialogOptions) => Promise<Electron.OpenDialogReturnValue>
-            //openContext: (x: number, y: number, id: string) => Promise<string | null>
+            openContext: (x: number, y: number, items: Array<string>) => Promise<string | null>
           }
     }
 }

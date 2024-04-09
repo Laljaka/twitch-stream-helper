@@ -61,15 +61,11 @@ l.log('starting loading')
 const mainElement = document.querySelector('main')
 
 for (const key in dataFromMain) {
-    const ref = document.createElement('li')
-    ref.id = key
-    ref.className = 'inactive'
+    const ref = createElementOneLine('li', {id: key, className: 'inactive'})
     ref.innerHTML = `<h3>${dataFromMain[key].displayName}</h3>`
     menu.prepend(ref)
 
-    const settings = document.createElement('div')
-    settings.className = 'module-settings'
-    settings.id = `-${key}`
+    const settings = createElementOneLine('div', {id:`-${key}`, className: 'module-settings'})
     settings.dataset['id'] = key
     settings.innerHTML = `
     <fieldset class="wrapper setting" id="target"><legend>Settings</legend>
@@ -114,10 +110,7 @@ for (const key in dataFromMain) {
         for (let elem of form.elements){
             if (elem instanceof HTMLInputElement && elem.className !== 'reveal') {
                 const newElem = elem
-                newElem.addEventListener('input', () => { 
-                    console.log(key, newElem.name, 'input')
-                    window.mainApi.save(key, newElem.name, deduceReturnType(newElem))
-                })
+                newElem.addEventListener('input', () => window.mainApi.save(key, newElem.name, deduceReturnType(newElem)))
             }
         }
         l.log(`${key} saving set up`)
@@ -230,13 +223,9 @@ function generatePasswordReveals(elem) {
 /** @param {Element} element  */
 function handleFileInput(element) {
     if (!(element instanceof HTMLInputElement)) return
-    const button = document.createElement('button')
-    button.type = 'button'
-    //button.className = 'fakeButton'
-    const hidden = document.createElement('input')
-    hidden.type = 'hidden'
+    const button = createElementOneLine('button', {type: 'button'})
+    const hidden = createElementOneLine('input', {type: 'hidden', name: element.name})
     const test = element.dataset['extensions'].split(', ')
-    hidden.name = element.name
     button.innerText = element.placeholder
     button.addEventListener('click', async (_) => {
         //ev.preventDefault()
@@ -252,24 +241,26 @@ function handleFileInput(element) {
 }
 
 window.addEventListener('contextmenu', async (ev) => {
-    /*
     if (!(ev.target instanceof Element)) return
-    console.log([...yeildParents(ev.target)])
-    /*
-    for (const parent of yeildParents(ev.target)) {
-        if (!(parent instanceof HTMLFormElement)) continue
-        const resp = await window.mainApi.openContext(ev.x, ev.y, parent.dataset['id'])
-        if (resp === 'clear') {
-            for (const el of parent.elements) {
-                if (el instanceof HTMLInputElement) {
-                    if (el.type === 'checkbox') {
-                        el.checked = false
-                    else el.value = ''
+    const arr = [...yeildParents(ev.target)]
+    const resp = await window.mainApi.openContext(ev.x, ev.y, arr.map((el) => el.tagName))
+    console.log(resp)
+    if (resp === 'clear') {
+        const parent = arr.find((el) => el.tagName === 'FORM')
+        if (!(parent instanceof HTMLFormElement)) return
+        for (const el of parent.elements) {
+            if (el instanceof HTMLInputElement) {
+                if (el.type === 'checkbox') {
+                    el.checked = false
+                    el.dispatchEvent(new Event('input', { bubbles: true }) )
+                }
+                else {
+                    el.value = ''
+                    el.dispatchEvent(new Event('input', { bubbles: true }))
                 }
             }
         }
-        break
-    }*/
+    }
     
 })
 

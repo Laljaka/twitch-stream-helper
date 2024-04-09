@@ -143,22 +143,36 @@ ipcMain.handle('main:loadHTML', (_, forModule) => {
         })
     })
 })
-/*
-ipcMain.handle('main:ctx', (ev, x, y, id) => {
+
+ipcMain.handle('main:ctx', (ev, x, y, items) => {
     return new Promise((res, rej) => {
         const menu = Menu.buildFromTemplate([
+            {
+                role: 'copy',
+                //enabled: selected? true : false
+            },
+            {
+                role: 'cut',
+                //enabled: selected? true : false
+            },
+            {
+                role: 'paste'
+            },
+            {
+                type: 'separator'
+            },
             {
                 label: 'Clear data',
                 click: () => {
                     res('clear')
                 },
-                visible: true
+                enabled: (items.includes("FORM"))? true : false
             }
         ])
-        menu.popup({ window: mainWindow , x: x, y: y, callback: () => res() })
+        menu.popup({ window: mainWindow, x: x, y: y, callback: () => res('testing') })
     })
 })
-*/
+
 
 app.once('before-quit', async (ev) => {
     ev.preventDefault()

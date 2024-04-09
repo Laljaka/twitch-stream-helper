@@ -10,5 +10,5 @@ contextBridge.exposeInMainWorld('mainApi', {
     stopModule: (value) => ipcRenderer.send("main:stop-module", value),
     stateUpdate: (callback) => { ipcRenderer.on('state', (_, f, state) => callback(f, state)) },
     openFile: (options) => ipcRenderer.invoke('main:openFile', options),
-    openContext: (x, y, id) => ipcRenderer.invoke('main:ctx', x, y, id)
+    openContext: (x, y, i) => ipcRenderer.invoke('main:ctx', x, y, i)
 })
