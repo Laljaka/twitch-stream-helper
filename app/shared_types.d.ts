@@ -16,9 +16,9 @@ declare global {
             loadHTML: (mod: string) => Promise<string>
             //startModule: (v: string) => Promise<void>
             //stopModule: (v: string) => Promise<void>
-            toConsole: (callback: Function) => void
+            toConsole: (calback: (from: string, v: string) => void ) => void
             save: (from: string, key: string, value: string|boolean) => void
-            stateUpdate: (callback: Function) => void
+            stateUpdate: (callback: (from: string, state: boolean) => void) => void
             startModule: (v: string) => void
             stopModule: (v: string) => void
             openFile: (options: Electron.OpenDialogOptions) => Promise<Electron.OpenDialogReturnValue>
@@ -29,10 +29,6 @@ declare global {
 
 type Modules = {
     [key: string]: Module
-}
-
-type TaskWrapper = {
-    (): Promise<void>
 }
 
 type ModuleData = {

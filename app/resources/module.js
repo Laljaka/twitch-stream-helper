@@ -18,7 +18,7 @@ export class Module {
     name
     /** @type {import("../shared_types.d.ts").ModuleData} @public */
     data
-    /** @type {import("../shared_types.d.ts").ModuleStorage} @protected */
+    /** @type {import("../shared_types.d.ts").ModuleStorage} @public */
     storage
     /** @type {BrowserWindow} @protected */
     ref
@@ -88,14 +88,6 @@ export class Module {
      */
     setStorageKey(key, value) {
         this.storage[key] = value
-    }
-
-    /**
-     * @returns {import("../shared_types.d.ts").ModuleStorage} 
-     * @public 
-     */
-    getStorage() {
-        return {...this.storage}
     }
 }
 

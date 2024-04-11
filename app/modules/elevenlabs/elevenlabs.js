@@ -1,5 +1,5 @@
 class TaskQueue {
-    /** @type {Array<import("../../shared_types.d.ts").TaskWrapper>} @protected */
+    /** @type {Array<import("./elevenlabs.d.ts").TaskWrapper>} @protected */
     list
     /** @protected */
     onTask
@@ -19,7 +19,7 @@ class TaskQueue {
     }
     
     /**
-     * @param {import("../../shared_types.d.ts").TaskWrapper} callback 
+     * @param {import("./elevenlabs.d.ts").TaskWrapper} callback 
      * @public
      */
     addTask(callback) {

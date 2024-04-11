@@ -1,28 +1,9 @@
-class TimeLogger {
-    state
-    doodad
-    enabled
-    /** @param {boolean} enabled  */
-    constructor(enabled) {
-        this.state = true
-        this.doodad = 'time'
-        this.enabled = enabled
-    }
+import { TimeLogger, createElementOneLine, generatePasswordReveals, 
+        generateQueryAllowed, handleFileInput, yeildParents } from "./renderer.helpers.js"
 
-    /** @param {string} [args]  */
-    log(args) {
-        if (!this.enabled) return
-        
-        this.state? console.time(this.doodad) : console.timeLog(this.doodad, args)
-        this.state = false
-    }
-}
-
-const l = new TimeLogger(true)
+const l = new TimeLogger(false)
 
 const menu = document.querySelector('menu')
-
-l.log()
 
 /** @type {import("./shared_types.d.ts").Send} */
 const dataFromMain = await window.mainApi.loadData()
@@ -31,20 +12,6 @@ l.log('data loaded')
 const allowedInputs = ['[type=checkbox]', '[type=password]', '[type=number]', '[type=file]', '[type=url]']
 const allowedElements = ['input', 'label', 'span']
 
-/**
- * @param {string} forr 
- * @param {Array<string>} allowed 
- * @returns 
- */
-function generateQueryAllowed(forr, allowed) {
-    let res = `${forr}:not(`
-    for (const dis of allowed) {
-        res = res.concat(`${dis}, `)
-    }
-    res = res.slice(0, -2)
-    res = res.concat(')')
-    return res
-}
 
 /** 
  * @param {HTMLInputElement} elem  
@@ -60,13 +27,13 @@ l.log('starting loading')
 
 const mainElement = document.querySelector('main')
 
-for (const key in dataFromMain) {
-    const ref = createElementOneLine('li', {id: key, className: 'inactive'})
-    ref.innerHTML = `<h3>${dataFromMain[key].displayName}</h3>`
-    menu.prepend(ref)
+for (const moduleName in dataFromMain) {
+    const li = createElementOneLine('li', {id: moduleName, className: 'inactive'})
+    li.innerHTML = `<h3>${dataFromMain[moduleName].displayName}</h3>`
+    menu.prepend(li)
 
-    const settings = createElementOneLine('div', {id:`-${key}`, className: 'module-settings'})
-    settings.dataset['id'] = key
+    const settings = createElementOneLine('div', {id:`-${moduleName}`, className: 'module-settings'})
+    settings.dataset['id'] = moduleName
     settings.innerHTML = `
     <fieldset class="wrapper setting" id="target"><legend>Settings</legend>
     </fieldset>
@@ -77,43 +44,57 @@ for (const key in dataFromMain) {
         </label>
     </fieldset>
     <samp class="wrapper">
-        <span>${dataFromMain[key].displayName} :> </span>
+        <span>${dataFromMain[moduleName].displayName} :> </span>
     </samp>`
     mainElement.appendChild(settings)
-    l.log(`${key} html loaded`)
+    l.log(`${moduleName} html loaded`)
 
     const fieldset = settings.querySelector('#target')
     const prom = window.mainApi.loadHTML(key).then((htttml) => {
         const form = document.createElement('form')
-        form.dataset['id'] = key
-        form.innerHTML = htttml
-        l.log(`${key} inner html loaded`)
+    form.dataset['id'] = moduleName
+    form.innerHTML = dataFromMain[moduleName].html
+    l.log(`${moduleName} inner html loaded`)
 
-        form.querySelectorAll(generateQueryAllowed('*', allowedElements)).forEach((elem) => {
-            console.log(elem)
-            elem.remove()
-        })
-
-        // clean up html
-        form.querySelectorAll(generateQueryAllowed('input', allowedInputs)).forEach((elem) => {
-            console.log(elem)
-            elem.remove()
-        })
-        l.log(`${key} cleaned up`)
-
-        form.querySelectorAll("input[type=password]").forEach((inp) => generatePasswordReveals(inp))
-        l.log(`${key} reveals set up`)
-
-        form.querySelectorAll("input[type=file]").forEach((element) => handleFileInput(element))
-        l.log(`${key} file inputs set up`)
-
-        for (let elem of form.elements){
-            if (elem instanceof HTMLInputElement && elem.className !== 'reveal') {
-                const newElem = elem
-                newElem.addEventListener('input', () => window.mainApi.save(key, newElem.name, deduceReturnType(newElem)))
+    const cSwitch = settings.querySelector('.switch')
+    const switchInput = cSwitch.querySelector('input')
+    switchInput.checked = false
+    /** @type {HTMLElement} */
+    const thumb = cSwitch.querySelector('.thumb')
+    switchInput.addEventListener('change', (ev) => {
+        if (switchInput.checked) {
+            if (!form.reportValidity()) {
+                switchInput.checked = false
+                return
             }
         }
-        l.log(`${key} saving set up`)
+        switchInput.disabled = true
+        thumb.style.setProperty('--outline', 'yellow')
+        li.style.setProperty('--before-color', "yellow")
+        switchInput.checked? window.mainApi.startModule(moduleName) : window.mainApi.stopModule(moduleName)
+    })
+
+    l.log(`${moduleName} switches loaded`)
+
+    form.querySelectorAll(generateQueryAllowed('*', allowedElements)).forEach((elem) => elem.remove())
+
+        // clean up html
+    form.querySelectorAll(generateQueryAllowed('input', allowedInputs)).forEach((elem) => elem.remove())
+    l.log(`${moduleName} cleaned up`)
+
+        form.querySelectorAll("input[type=password]").forEach((inp) => generatePasswordReveals(inp))
+    l.log(`${moduleName} reveals set up`)
+
+        form.querySelectorAll("input[type=file]").forEach((element) => handleFileInput(element))
+    l.log(`${moduleName} file inputs set up`)
+
+    for (const elem of form.elements){
+            if (elem instanceof HTMLInputElement && elem.className !== 'reveal') {
+                const newElem = elem
+            newElem.addEventListener('input', () => window.mainApi.save(moduleName, newElem.name, deduceReturnType(newElem)))
+        }
+    }
+    l.log(`${moduleName} saving set up`)
 
         fieldset.append(form)
     })
@@ -182,64 +163,6 @@ window.mainApi.stateUpdate((from, state) => {
 
 l.log('registering api calls')
 
-const cSwitches = document.querySelectorAll(".switch")
-
-cSwitches.forEach((cSwitch) => {
-    const checkbox = cSwitch.querySelector('input')
-    checkbox.checked = false
-    /** @type {HTMLElement} */
-    const thumb = cSwitch.querySelector('.thumb')
-    const mref = cSwitch.parentElement.parentElement
-    const fref = mref.querySelector('form')
-    const moduleReference = mref.dataset['id']
-    checkbox.addEventListener('change', (ev) => {
-        if (checkbox.checked) {
-            if (!fref.reportValidity()) {
-                checkbox.checked = false
-                return
-            }
-        }
-        checkbox.disabled = true
-        thumb.style.setProperty('--outline', 'yellow')
-        document.getElementById(moduleReference).style.setProperty('--before-color', "yellow")
-        checkbox.checked? window.mainApi.startModule(moduleReference) : window.mainApi.stopModule(moduleReference)
-    })
-})
-
-l.log('switches')
-
-/** @param {Element} elem  */
-function generatePasswordReveals(elem) {
-    if (!(elem instanceof HTMLInputElement)) return
-    const hide = createElementOneLine('input', {type: 'checkbox', className: 'reveal'})
-
-    hide.addEventListener('change', (_) => {
-        elem.type = hide.checked? 'text' : "password"
-    })
-
-    elem.after(hide)
-}
-
-/** @param {Element} element  */
-function handleFileInput(element) {
-    if (!(element instanceof HTMLInputElement)) return
-    const button = createElementOneLine('button', {type: 'button'})
-    const hidden = createElementOneLine('input', {type: 'hidden', name: element.name})
-    const test = element.dataset['extensions'].split(', ')
-    button.innerText = element.placeholder
-    button.addEventListener('click', async (_) => {
-        //ev.preventDefault()
-        const response = (await window.mainApi.openFile({ title: "Open", properties: ['openFile'], filters: [{name: test[0], extensions: test}]}))
-        if (!response.canceled) {
-            hidden.value = response.filePaths[0]
-            hidden.dispatchEvent(new Event('input', { bubbles: true }))
-        }
-    })
-    element.after(hidden)
-    element.after(button)
-    element.remove()
-}
-
 window.addEventListener('contextmenu', async (ev) => {
     if (!(ev.target instanceof Element)) return
     const arr = [...yeildParents(ev.target)]
@@ -253,8 +176,7 @@ window.addEventListener('contextmenu', async (ev) => {
                 if (el.type === 'checkbox') {
                     el.checked = false
                     el.dispatchEvent(new Event('input', { bubbles: true }) )
-                }
-                else {
+                } else {
                     el.value = ''
                     el.dispatchEvent(new Event('input', { bubbles: true }))
                 }
@@ -264,33 +186,13 @@ window.addEventListener('contextmenu', async (ev) => {
     
 })
 
-/**
- * @template {keyof HTMLElementTagNameMap} K 
- * @param {K} type 
- * @param {import("./shared_types.d.ts").ElementOptions} options 
- * @returns {HTMLElementTagNameMap[K]}
- */
-function createElementOneLine(type, options) {
-    const el = document.createElement(type)
-    if (options.id) el.id = options.id
-    if ((el instanceof HTMLInputElement || el instanceof HTMLButtonElement) && options.type) el.type = options.type
-    if ('name' in el && options.name) el.name = options.name
-    if (options.className) el.className = options.className
-    return el
-}
 
-/**
- * 
- * @param {Element} el 
- */
-function* yeildParents(el) {
-    do {
-        yield el
-    } while (el = el.parentElement)
-}
+
+
 
 //TODO: MODULES SHOULD NOT WORK WITHOUT API
 
 //TODO: PASSIVE EVENTS
 
 
+l.end()

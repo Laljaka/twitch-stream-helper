@@ -1,4 +1,6 @@
-export {}
+export type TaskWrapper = {
+    (): Promise<void>
+}
 
 declare global {
     interface Window {

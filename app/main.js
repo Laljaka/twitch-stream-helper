@@ -7,6 +7,8 @@ const __dir = path.join(process.cwd(), '/app')
 const __moduledir = path.join(__dir, '/modules')
 const __filepath = path.join(process.cwd(), '/content/storage.bin')
 
+Menu.setApplicationMenu(null)
+
 /** @type {BrowserWindow} */
 let mainWindow
 
@@ -69,15 +71,6 @@ function readData(defaults) {
     })
 }
 
-
-function registerModule(moduleName) {
-    ipcMain.on(`${moduleName}:readyState`, (_, args) => {
-        mainWindow.webContents.send(`${moduleName}:readyState`, args)
-    })
-
-    
-}
-
 /**
  * 
  * @param {import('./shared_types.d.ts').MultiModuleStorage} d 
@@ -106,15 +99,13 @@ ipcMain.on('save', (_, from, key, data) => {
     modules[from].setStorageKey(key, data)
 })
 
-// TODO try packing this into stdout
 ipcMain.on('state', (_, from, state) => {
     mainWindow.webContents.send('state', from, state)
 })
 
 ipcMain.on('main:start-module', (_, v) => {
-    modules[v].createWindow(() => {
-        if (mainWindow) mainWindow.webContents.send('state', v, false)
-    })
+    modules[v].createWindow()
+        .once('closed', () => { if (mainWindow) mainWindow.webContents.send('state', v, false) })
 })
 
 ipcMain.on('main:stop-module', (_, v) => {
@@ -135,39 +126,17 @@ ipcMain.handle('main:loadData', () => {
     return toSend
 })
 
-ipcMain.handle('main:loadHTML', (_, forModule) => {
-    return new Promise((res, rej) => {
-        fs.readFile(path.join(__moduledir, `/${forModule}/${forModule}.desc.html`), {encoding: "utf-8"}, (err, data) => {
-            if (err) rej(err)
-            else res(data)
-        })
-    })
-})
-
-ipcMain.handle('main:ctx', (ev, x, y, items) => {
+ipcMain.handle('main:ctx', (_, x, y, items) => {
     return new Promise((res, rej) => {
         const menu = Menu.buildFromTemplate([
-            {
-                role: 'copy',
-                //enabled: selected? true : false
-            },
-            {
-                role: 'cut',
-                //enabled: selected? true : false
-            },
-            {
-                role: 'paste'
-            },
-            {
-                type: 'separator'
-            },
-            {
-                label: 'Clear data',
-                click: () => {
-                    res('clear')
-                },
-                enabled: (items.includes("FORM"))? true : false
-            }
+            {   role: 'copy' },
+            {   role: 'cut' },
+            {   role: 'paste' },
+            {   type: 'separator' },
+            {   label: 'Clear data',
+                click: () => res('clear'),
+                enabled: (items.includes("FORM"))? true : false },
+            { role: 'toggleDevTools' }
         ])
         menu.popup({ window: mainWindow, x: x, y: y, callback: () => res('testing') })
     })
@@ -179,7 +148,7 @@ app.once('before-quit', async (ev) => {
     /** @type {import('./shared_types.d.ts').MultiModuleStorage} */
     const st = {}
     for (const key in modules) {
-        st[key] = modules[key].getStorage()
+        st[key] = modules[key].storage
     }
     await writeData(st)
     app.quit()
