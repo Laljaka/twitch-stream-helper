@@ -22,31 +22,40 @@ export class Module {
     storage
     /** @type {BrowserWindow} @protected */
     ref
+    /** @type {string} @public */
+    html
     /** @param {string} name */
     constructor(name) {
         this.name = name
-        this.data = null
         this.storage = {}
         this.ref = null
     }
 
     async initialise() {
         try {
-            this.data = JSON.parse(await fs.readFile(path.join(__moduledir, `/${this.name}/${this.name}.desc.json`), {encoding: "utf-8"}))
-            for (const key in schema) {
-                if (!(key in this.data) || typeof this.data[key] !== schema[key]) {
-                    throw 'pew'
+            const prom1 = fs.readFile(path.join(__moduledir, `/${this.name}/${this.name}.desc.json`), {encoding: "utf-8"}).then((data) => {
+                this.data = JSON.parse(data)
+                for (const key in schema) {
+                    if (!(key in this.data) || typeof this.data[key] !== schema[key]) {
+                        throw 'pew'
+                    }
                 }
-            }
-            Object.freeze(this.data)
+                Object.freeze(this.data)
+            })
+            
+            const prom2 = fs.readFile(path.join(__moduledir, `/${this.name}/${this.name}.desc.html`), {encoding: "utf-8"}).then((html) => {
+                this.html = html
+            })
+            
+            await Promise.all([prom1, prom2])
+
             return this.name
         } catch (_) {
             throw this.name
         }
     }
 
-    /** @param {Function} [onClose] @public */
-    createWindow(onClose) {
+    createWindow() {
         if (this.ref) throw new ReferenceError('Window already exists')
         this.ref = new BrowserWindow({
             width: 800,
@@ -64,11 +73,11 @@ export class Module {
 
         if (this.data.shown) this.ref.once('ready-to-show', this.ref.show)
 
+        this.ref.once(('closed'), () => { this.ref = null })
+
         this.ref.loadFile(path.join(__moduledir, `/${this.name}/${this.name}.html`))
-        this.ref.once(('closed'), () => {
-            onClose()
-            this.ref = null
-        })
+        
+        return this.ref
     }
 
     /** @public */

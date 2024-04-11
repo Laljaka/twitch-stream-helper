@@ -22,7 +22,6 @@ function deduceReturnType(elem) {
     else return elem.value
 }
 
-const promises = []
 l.log('starting loading')
 
 const mainElement = document.querySelector('main')
@@ -50,8 +49,7 @@ for (const moduleName in dataFromMain) {
     l.log(`${moduleName} html loaded`)
 
     const fieldset = settings.querySelector('#target')
-    const prom = window.mainApi.loadHTML(key).then((htttml) => {
-        const form = document.createElement('form')
+    const form = document.createElement('form')
     form.dataset['id'] = moduleName
     form.innerHTML = dataFromMain[moduleName].html
     l.log(`${moduleName} inner html loaded`)
@@ -78,31 +76,26 @@ for (const moduleName in dataFromMain) {
 
     form.querySelectorAll(generateQueryAllowed('*', allowedElements)).forEach((elem) => elem.remove())
 
-        // clean up html
+    // clean up html
     form.querySelectorAll(generateQueryAllowed('input', allowedInputs)).forEach((elem) => elem.remove())
     l.log(`${moduleName} cleaned up`)
 
-        form.querySelectorAll("input[type=password]").forEach((inp) => generatePasswordReveals(inp))
+    form.querySelectorAll("input[type=password]").forEach((inp) => generatePasswordReveals(inp))
     l.log(`${moduleName} reveals set up`)
 
-        form.querySelectorAll("input[type=file]").forEach((element) => handleFileInput(element))
+    form.querySelectorAll("input[type=file]").forEach((element) => handleFileInput(element))
     l.log(`${moduleName} file inputs set up`)
 
     for (const elem of form.elements){
-            if (elem instanceof HTMLInputElement && elem.className !== 'reveal') {
-                const newElem = elem
+        if (elem instanceof HTMLInputElement && elem.className !== 'reveal') {
+            const newElem = elem
             newElem.addEventListener('input', () => window.mainApi.save(moduleName, newElem.name, deduceReturnType(newElem)))
         }
     }
     l.log(`${moduleName} saving set up`)
 
-        fieldset.append(form)
-    })
-
-    promises.push(prom)
+    fieldset.append(form)
 }
-
-await Promise.all(promises)
 
 l.log('all preloaded')
 /** @type {string} */

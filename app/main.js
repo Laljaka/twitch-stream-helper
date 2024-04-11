@@ -121,7 +121,8 @@ ipcMain.handle('main:loadData', () => {
     for (const key in modules) {
         toSend[key] = {} 
         toSend[key]['displayName'] = modules[key].data.displayName
-        toSend[key]['storage'] = modules[key].getStorage()
+        toSend[key]['storage'] = modules[key].storage
+        toSend[key]['html'] = modules[key].html
     }
     return toSend
 })

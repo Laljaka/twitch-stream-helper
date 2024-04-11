@@ -13,7 +13,6 @@ declare global {
     interface Window {
         mainApi: {
             loadData: () => Promise<Send>
-            loadHTML: (mod: string) => Promise<string>
             //startModule: (v: string) => Promise<void>
             //stopModule: (v: string) => Promise<void>
             toConsole: (calback: (from: string, v: string) => void ) => void
@@ -43,6 +42,7 @@ type Send = {
     [key: string]: {
         displayName: string
         storage: ModuleStorage
+        html: string
     }
 }
 
