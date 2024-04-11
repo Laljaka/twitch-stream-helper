@@ -17,6 +17,8 @@ const reqMap = {
     '/predictions.css': ["text/css", fs.readFile(`${__dir}/pages/predictions.css`)],
 } 
 
+let ctx = 0
+
 const server = http.createServer((req, res) => {
     if (!req.url) {
         res.writeHead(404)
@@ -32,11 +34,16 @@ const server = http.createServer((req, res) => {
                 res.writeHead(404)
                 res.end(err.message)
             })
+        } else if (req.method === 'POST') {
+            window.serverApi.stdout(`received POST from ${req.url}`)
+            res.setHeader("Content-type", 'application/json')
+            res.writeHead(200)
+            res.end(JSON.stringify({data: ctx}))
+            ctx = ctx+1
         }
     } else {
         res.writeHead(404)
         res.end("Nothing to see here")
-        throw new Error('TEST')
     }
     /*
     if (req.url === '/polls.js') {}
