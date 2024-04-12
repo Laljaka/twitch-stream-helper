@@ -10,6 +10,7 @@ declare global {
             onTask: (callback: Function) => void
             stdout: (message: string) => void
             ready: () => void
+            receiver: (callback: Function) => Promise<void>
         }
     }
 }

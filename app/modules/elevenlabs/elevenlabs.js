@@ -34,6 +34,10 @@ const credentials = JSON.parse(window.elevenlabsApi.credentials)
 
 const audio = document.querySelector('audio')
 
+await window.elevenlabsApi.receiver((data) => {
+    window.elevenlabsApi.stdout(data)
+})
+
 
 // TODO add timed rejection and error handling
 /**

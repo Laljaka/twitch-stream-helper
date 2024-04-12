@@ -2,15 +2,19 @@ import { app, BrowserWindow, ipcMain, utilityProcess, safeStorage, dialog, Menu 
 import fs from 'node:fs'
 import path from "node:path"
 import { Module, createMainWindow } from './resources/module.js'
+import { MessageChannelMain } from 'electron/main'
 
 const __dir = path.join(process.cwd(), '/app')
 const __moduledir = path.join(__dir, '/modules')
 const __filepath = path.join(process.cwd(), '/content/storage.bin')
 
-Menu.setApplicationMenu(null)
+//Menu.setApplicationMenu(null)
 
 /** @type {BrowserWindow} */
 let mainWindow
+
+/** @type {Electron.UtilityProcess} */
+let communicator
 
 const dirarr = fs.readdirSync(__moduledir, { withFileTypes: true })
     .filter((dir) => dir.isDirectory())
@@ -95,6 +99,12 @@ ipcMain.on('stdout', (_, from, args) => {
     mainWindow.webContents.send('stdout', from, args)
 })
 
+ipcMain.on('setUpChannelsReq', (ev, from) => {
+    const { port1, port2 } = new MessageChannelMain()
+    communicator.postMessage(from, [port1])
+    ev.sender.postMessage('setUpChannelsResp', null, [port2])
+})
+
 ipcMain.on('save', (_, from, key, data) => {
     modules[from].setStorageKey(key, data)
 })
@@ -135,9 +145,9 @@ ipcMain.handle('main:ctx', (_, x, y, items) => {
             {   role: 'paste' },
             {   type: 'separator' },
             {   label: 'Clear data',
-                click: () => res('clear'),
-                enabled: (items.includes("FORM"))? true : false },
-            { role: 'toggleDevTools' }
+                    click: () => res('clear'),
+                    enabled: (items.includes("FORM"))? true : false },
+            {   role: 'toggleDevTools' }
         ])
         menu.popup({ window: mainWindow, x: x, y: y, callback: () => res('testing') })
     })
@@ -159,7 +169,17 @@ app.once('before-quit', async (ev) => {
 app.on('window-all-closed', () => console.log('all closed'))
 
 
-app.whenReady().then(async () => {    
+app.whenReady().then(async () => {
+    communicator = utilityProcess.fork(path.join(__dir, '/communicator.js'))   
+
+    const { port1, port2 } = new MessageChannelMain()
+    communicator.postMessage('doodaa', [port1])
+
+    setTimeout(() => {
+        port2.start()
+        port2.postMessage('aaaaaaaaaaaaaaaaaaaaa')
+    }, 10000)
+
     console.log('ready')
     const parsed = await readData(storageDefaults)
     for (const key in parsed) {

@@ -69,7 +69,7 @@ for (const moduleName in dataFromMain) {
         switchInput.disabled = true
         thumb.style.setProperty('--outline', 'yellow')
         li.style.setProperty('--before-color', "yellow")
-        switchInput.checked? window.mainApi.startModule(moduleName) : window.mainApi.stopModule(moduleName)
+        window.mainApi.controlModule(switchInput.checked, moduleName)
     })
 
     l.log(`${moduleName} switches loaded`)

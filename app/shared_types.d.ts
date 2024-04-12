@@ -18,8 +18,7 @@ declare global {
             toConsole: (calback: (from: string, v: string) => void ) => void
             save: (from: string, key: string, value: string|boolean) => void
             stateUpdate: (callback: (from: string, state: boolean) => void) => void
-            startModule: (v: string) => void
-            stopModule: (v: string) => void
+            controlModule: (start: boolean, moduleName: string) => void
             openFile: (options: Electron.OpenDialogOptions) => Promise<Electron.OpenDialogReturnValue>
             openContext: (x: number, y: number, items: Array<string>) => Promise<string | null>
           }
