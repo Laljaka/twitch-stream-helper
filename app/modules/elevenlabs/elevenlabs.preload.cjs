@@ -1,4 +1,5 @@
 const { ipcRenderer, contextBridge } = require('electron/renderer')
+const { EventEmitter } = require('node:events')
 
 let cred
 for (const arg of process.argv) {
@@ -7,9 +8,19 @@ for (const arg of process.argv) {
 
 if (!cred) window.close()
 
-//** @type {MessagePort | undefined} */
-//let port
+let isReady = false
 
+/** @type {MessagePort | undefined} */
+let port
+
+const portStatus = new EventEmitter()
+
+ipcRenderer.once('setUpChannelsResp', (ev) => {
+    port = ev.ports[0]
+    isReady = true
+    portStatus.emit('ready')
+})
+ipcRenderer.send('setUpChannelsReq', 'elevenlabs')
 
 
 contextBridge.exposeInMainWorld('elevenlabsApi', {
@@ -18,17 +29,19 @@ contextBridge.exposeInMainWorld('elevenlabsApi', {
     onTask: (callback) => { ipcRenderer.on('task', (_e, args) => callback(args)) },
     stdout: (args) => ipcRenderer.send('stdout', 'elevenlabs', args),
     ready: () => ipcRenderer.send('state', 'elevenlabs', true),
-    receiver: function(callback) {
-        return new Promise((res, rej) => {
-            ipcRenderer.once('setUpChannelsResp', (ev) => {
-                const port = ev.ports[0]
+    receiver: (callback) => {
+        if (!isReady) {
+            portStatus.once('ready', () => {
                 port.addEventListener('message', (m) => {
                     callback(m.data)
                 })
                 port.start()
-                res()
             })
-            ipcRenderer.send('setUpChannelsReq', 'elevenlabs')
-        })
+        } else {
+            port.addEventListener('message', (m) => {
+                callback(m.data)
+            })
+            port.start()
+        }
     }
 })
