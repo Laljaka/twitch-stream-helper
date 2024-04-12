@@ -34,7 +34,7 @@ const credentials = JSON.parse(window.elevenlabsApi.credentials)
 
 const audio = document.querySelector('audio')
 
-await window.elevenlabsApi.receiver((data) => {
+window.elevenlabsApi.receiver((data) => {
     window.elevenlabsApi.stdout(data)
 })
 
@@ -158,12 +158,7 @@ const headers = {
 const queue = new TaskQueue()
 
 
-window.elevenlabsApi.onTask((args) => {
-    queue.addTask(() => task(args))
-})
-
-
-window.elevenlabsApi.onClose(() => {
+window.elevenlabsApi.toClose(() => {
     window.close()
 })
 

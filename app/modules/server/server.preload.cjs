@@ -1,4 +1,7 @@
 const { ipcRenderer } = require("electron/renderer")
+const { EventEmitter } = require('node:events')
+
+const _filename = 'server'
 
 let cred
 for (const arg of process.argv) {
@@ -7,8 +10,39 @@ for (const arg of process.argv) {
 
 if (!cred) window.close()
 
-window.serverApi = {}
-window.serverApi.toClose = function(callback) { ipcRenderer.on('close', callback) }
-window.serverApi.credentials = cred
-window.serverApi.stdout = function(message) { ipcRenderer.send('stdout', 'server', message) }
-window.serverApi.ready = function() { ipcRenderer.send('state', 'server', true) }
+let isReady = false
+
+/** @type {MessagePort | undefined} */
+let port
+
+const portStatus = new EventEmitter()
+
+ipcRenderer.once('setUpChannelsResp', (ev) => {
+    port = ev.ports[0]
+    isReady = true
+    portStatus.emit('ready')
+})
+
+window.serverApi = {
+    toClose: (callback) => { ipcRenderer.on('close', () => callback()) },
+    credentials: cred,
+    stdout: (message) => { ipcRenderer.send('stdout', _filename, message) },
+    ready: () => { ipcRenderer.send('state', _filename, true) },
+    receiver: (callback) => {
+        if (!isReady) {
+            portStatus.once('ready', () => {
+                port.addEventListener('message', (m) => {
+                    callback(m.data)
+                })
+                port.start()
+            })
+        } else {
+            port.addEventListener('message', (m) => {
+                callback(m.data)
+            })
+            port.start()
+        }
+    }
+}
+
+ipcRenderer.send('setUpChannelsReq', _filename)

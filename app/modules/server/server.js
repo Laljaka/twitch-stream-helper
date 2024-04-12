@@ -3,6 +3,10 @@ const http = require('node:http')
 //import fs from 'node:fs/promises'
 const fs = require('node:fs/promises')
 
+window.serverApi.receiver((m) => {
+    window.serverApi.stdout(m)
+})
+
 const credentials = JSON.parse(window.serverApi.credentials)
 if (!credentials['port']) credentials['port'] = 6969
 

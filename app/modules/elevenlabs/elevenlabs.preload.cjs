@@ -1,6 +1,8 @@
 const { ipcRenderer, contextBridge } = require('electron/renderer')
 const { EventEmitter } = require('node:events')
 
+const _filename = 'elevenlabs'
+
 let cred
 for (const arg of process.argv) {
     if (arg.startsWith(':;:')) cred = arg.slice(3)
@@ -20,15 +22,12 @@ ipcRenderer.once('setUpChannelsResp', (ev) => {
     isReady = true
     portStatus.emit('ready')
 })
-ipcRenderer.send('setUpChannelsReq', 'elevenlabs')
 
-
-contextBridge.exposeInMainWorld('elevenlabsApi', {
-    onClose: (callback) => { ipcRenderer.once('close', (_e, _v) => callback()) },
+contextBridge.exposeInMainWorld(`${_filename}Api`, {
+    toClose: (callback) => { ipcRenderer.once('close', (_e, _v) => callback()) },
     credentials: cred,
-    onTask: (callback) => { ipcRenderer.on('task', (_e, args) => callback(args)) },
-    stdout: (args) => ipcRenderer.send('stdout', 'elevenlabs', args),
-    ready: () => ipcRenderer.send('state', 'elevenlabs', true),
+    stdout: (args) => ipcRenderer.send('stdout', _filename, args),
+    ready: () => ipcRenderer.send('state', _filename, true),
     receiver: (callback) => {
         if (!isReady) {
             portStatus.once('ready', () => {
@@ -45,3 +44,5 @@ contextBridge.exposeInMainWorld('elevenlabsApi', {
         }
     }
 })
+
+ipcRenderer.send('setUpChannelsReq', _filename)

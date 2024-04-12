@@ -7,6 +7,10 @@ window.modelviewerApi.toClose(() => {
     window.close()
 })
 
+window.modelviewerApi.receiver((m) => {
+    window.modelviewerApi.stdout(m)
+})
+
 window.addEventListener('error', (ev) => {
     window.modelviewerApi.stdout(ev.message)
     window.close()
@@ -44,9 +48,6 @@ scene.add( light );
 let xrot = credentials['xrot'] / credentials['mul']
 let yrot = credentials['yrot'] / credentials['mul']
 
-window.modelviewerApi.onData((args) => {
-    xrot = parseFloat(args)
-})
 
 window.modelviewerApi.stdout('loading the model')
 mtlload.load(credentials['texture'], (texture) => {

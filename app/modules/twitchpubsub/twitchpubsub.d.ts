@@ -5,8 +5,9 @@ declare global {
         twitchpubsubApi: {
             credentials : string
             stdout: (str: string) => void
-            onClose: (callback: Function) => void
+            onClose: (callback: () => void) => void
             ready: () => void
+            sender: (msg: string | object) => void
         }
     }
 }

@@ -5,12 +5,11 @@ export type TaskWrapper = {
 declare global {
     interface Window {
         elevenlabsApi: {
-            onClose: (callback: Function) => void
+            toClose: (callback: () => void) => void
             credentials : string
-            onTask: (callback: Function) => void
             stdout: (message: string) => void
             ready: () => void
-            receiver: (callback: Function) => Promise<void>
+            receiver: (callback: (data: any) => void) => void
         }
     }
 }

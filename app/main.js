@@ -172,13 +172,6 @@ app.on('window-all-closed', () => console.log('all closed'))
 app.whenReady().then(async () => {
     communicator = utilityProcess.fork(path.join(__dir, '/communicator.js'))   
 
-    const { port1, port2 } = new MessageChannelMain()
-    communicator.postMessage('doodaa', [port1])
-
-    setTimeout(() => {
-        port2.start()
-        port2.postMessage('aaaaaaaaaaaaaaaaaaaaa')
-    }, 10000)
 
     console.log('ready')
     const parsed = await readData(storageDefaults)

@@ -121,22 +121,22 @@ async function message(data) {
             timeout = setTimeout(reconnect, 100000)
             switch (json.payload.event.reward.title) {
                 case "Spin the rat right!":
-                    //ipcRenderer.send('websocket', { type: "data", to: "3d", message: { axis: "y" , amount: 0.15 } })
+                    window.twitchpubsubApi.sender({ type: "data", to: "3d", message: { axis: "y" , amount: 0.15 } })
                     break
                 case "Spin the rat up!":
-                    //ipcRenderer.send('websocket', { type: "data", to: "3d", message: { axis: "x" , amount: -0.15 } })
+                    window.twitchpubsubApi.sender({ type: "data", to: "3d", message: { axis: "x" , amount: -0.15 } })
                     break
                 case "Spin the rat down!":
-                    //ipcRenderer.send('websocket', { type: "data", to: "3d", message: { axis: "x" , amount: 0.15 } })
+                    window.twitchpubsubApi.sender({ type: "data", to: "3d", message: { axis: "x" , amount: 0.15 } })
                     break
                 case "Spin the rat left!":
-                    //ipcRenderer.send('websocket', { type: "data", to: "3d", message: { axis: "y" , amount: -0.15 } })
+                    window.twitchpubsubApi.sender({ type: "data", to: "3d", message: { axis: "y" , amount: -0.15 } })
                     break
                 case "TTS Glukhar from Tarkov":
-                    //ipcRenderer.send('websocket', { type: "data", to: "AI", message: { voice: "Glukhar" , text: json.payload.event.user_input } })
+                    window.twitchpubsubApi.sender({ type: "data", to: "AI", message: { voice: "Glukhar" , text: json.payload.event.user_input } })
                     break
                 case "TTS Birdeye from Tarkov":
-                    //ipcRenderer.send('websocket', { type: "data", to: "AI", message: { voice: "Birdeye" , text: json.payload.event.user_input } })
+                    window.twitchpubsubApi.sender({ type: "data", to: "AI", message: { voice: "Birdeye" , text: json.payload.event.user_input } })
                     break
             }
             break
