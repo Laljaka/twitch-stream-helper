@@ -1,4 +1,4 @@
-import { BrowserWindow } from "electron"
+import { BrowserWindow } from "electron/main"
 import fs from "node:fs/promises"
 import path from "node:path"
 
@@ -98,27 +98,4 @@ export class Module {
     setStorageKey(key, value) {
         this.storage[key] = value
     }
-}
-
-/**
- * @returns {BrowserWindow}
- */
-export function createMainWindow() {
-    const win = new BrowserWindow({
-        width: 800,
-        minWidth: 700,
-        height: 600,
-        minHeight: 550,
-        autoHideMenuBar: true,
-        show: false,
-        webPreferences: {
-            preload: path.join(__dir, 'preload.cjs')
-        }
-    })
-
-    win.loadFile(path.join(__dir, 'index.html'))
-
-    win.once('ready-to-show', () => win.show())
-
-    return win
 }
