@@ -30,6 +30,11 @@ class TaskQueue {
     }
 }
 
+window.addEventListener('error', (ev) => {
+    window.elevenlabsApi.stdout(ev.message)
+    window.close()
+})
+
 const credentials = JSON.parse(window.elevenlabsApi.credentials)
 
 const audio = document.querySelector('audio')
@@ -37,7 +42,6 @@ const audio = document.querySelector('audio')
 window.elevenlabsApi.receiver((data) => {
     window.elevenlabsApi.stdout(data)
 })
-
 
 // TODO add timed rejection and error handling
 /**
@@ -172,9 +176,5 @@ queue.addTask(() => task('Testing 2 electric boogaloo'))
 window.elevenlabsApi.stdout('finished loading module')
 window.elevenlabsApi.ready()
 
-window.addEventListener('error', (ev) => {
-    window.elevenlabsApi.stdout(ev.message)
-    window.close()
-})
 
 window.elevenlabsApi.stdout(window.elevenlabsApi.credentials)

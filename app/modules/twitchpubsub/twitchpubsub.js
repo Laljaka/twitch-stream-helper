@@ -3,6 +3,10 @@ let timeout
 
 const credentials = JSON.parse(window.twitchpubsubApi.credentials)
 
+window.addEventListener('error', (ev) => {
+    shutdown(ev.message)
+})
+
 let socket = connect()
 //TODO explore this reference of a websocket in the callback of the event listener
 
@@ -97,14 +101,8 @@ async function message(data) {
             if (SID !== json.payload.session.id) {
                 window.twitchpubsubApi.stdout('Received session ID, subscribing to events...')
                 SID = json.payload.session.id
-                await unsub().catch((err) => {
-                    window.twitchpubsubApi.stdout(err)
-                    shutdown()
-                })
-                await sub().catch((err) => {
-                    window.twitchpubsubApi.stdout(err)
-                    shutdown()
-                })
+                await unsub().catch((err) => shutdown(err))
+                await sub().catch((err) => shutdown(err))
                 window.twitchpubsubApi.stdout('Subscribed to events!')
             }
             timeout = setTimeout(reconnect, 100000)
@@ -154,7 +152,9 @@ window.twitchpubsubApi.ready()
 
 
 //TODO explore window refs inside callbacks 
-function shutdown() {
+/** @param {string} [reason]  */
+function shutdown(reason) {
+    if (reason) window.twitchpubsubApi.stdout(reason)
     disconnect(socket)
     window.close() 
 }

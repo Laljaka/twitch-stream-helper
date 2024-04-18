@@ -11,10 +11,13 @@ window.modelviewerApi.receiver((m) => {
     window.modelviewerApi.stdout(m)
 })
 
-window.addEventListener('error', (ev) => {
-    window.modelviewerApi.stdout(ev.message)
+/** @param {ErrorEvent} something  */
+function err(something) {
+    window.modelviewerApi.stdout(something.message)
     window.close()
-})
+}
+
+window.addEventListener('error', err)
 
 window.modelviewerApi.stdout(window.modelviewerApi.credentials)
 

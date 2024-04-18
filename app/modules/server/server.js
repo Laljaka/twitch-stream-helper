@@ -3,6 +3,11 @@ const http = require('node:http')
 //import fs from 'node:fs/promises'
 const fs = require('node:fs/promises')
 
+window.addEventListener('error', (ev) => {
+    window.elevenlabsApi.stdout(ev.message)
+    window.close()
+})
+
 window.serverApi.receiver((m) => {
     window.serverApi.stdout(m)
 })
@@ -90,10 +95,6 @@ server.listen(credentials['port'], 'localhost', () => {
     //window.bridge.sendToMain(`Server is running on http://${host}:${port}`)
     window.serverApi.stdout(`running on http://localhost:${credentials['port']}`)
     window.serverApi.ready()
-})
-
-window.serverApi.toClose(() => {
-    window.close()
 })
 
 window.serverApi.stdout(window.serverApi.credentials)
