@@ -4,7 +4,7 @@ declare global {
     interface Window {
         twitchpubsubApi: {
             credentials : string
-            stdout: (str: string) => void
+            stdout: (...args: Array<string | number>) => void
             ready: () => void
             sender: (msg: string | object) => void
         }

@@ -4,7 +4,7 @@ declare global {
     interface Window {
         modelviewerApi: {
             credentials : string
-            stdout: (message: string) => void
+            stdout: (...args: Array<string | number>) => void
             ready: () => void
             receiver: (callback: (data: any) => void) => void
         }

@@ -26,7 +26,9 @@ ipcRenderer.once('setUpChannelsResp', (ev) => {
 
 contextBridge.exposeInMainWorld(`${_filename}Api`, {
     credentials: cred,
-    stdout: (message) => ipcRenderer.send('stdout', _filename, message),
+    stdout: (...message) => { 
+        ipcRenderer.send('stdout', _filename, message.join(' ')) 
+    },
     ready: () => ipcRenderer.send('state', _filename, true),
     receiver: (callback) => {
         if (!isReady) {

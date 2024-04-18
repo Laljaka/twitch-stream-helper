@@ -25,7 +25,9 @@ ipcRenderer.once('setUpChannelsResp', (ev) => {
 
 window.serverApi = {
     credentials: cred,
-    stdout: (message) => { ipcRenderer.send('stdout', _filename, message) },
+    stdout: (...args) => {
+        ipcRenderer.send('stdout', _filename, args.join(' '))
+    },
     ready: () => { ipcRenderer.send('state', _filename, true) },
     receiver: (callback) => {
         if (!isReady) {
