@@ -6,15 +6,21 @@ const _dir = path.join(process.cwd(), '/app')
 const __filepath = path.join(app.getPath('userData'), '/storage.bin')
 
 /**
+ * @param {Electron.Rectangle} bounds 
  * @returns {BrowserWindow}
  */
-export function createMainWindow() {
+export function createMainWindow(bounds) {
     const win = new BrowserWindow({
-        width: 800,
+        width: bounds.width,
         minWidth: 700,
-        height: 600,
+        height: bounds.height,
         minHeight: 550,
+        x: bounds.x,
+        y: bounds.y,
         autoHideMenuBar: true,
+        fullscreen: false,
+        fullscreenable: false,
+        maximizable: false,
         show: false,
         webPreferences: {
             preload: path.join(_dir, 'preload.cjs')
@@ -40,7 +46,7 @@ export async function readStorageData(defaults) {
         return parsed
     } catch (error) {
         return defaults
-                }
+    }
 }
 
 /**

@@ -9,6 +9,8 @@ const __dir = path.join(process.cwd(), '/app')
 const __moduledir = path.join(__dir, '/modules')
 
 //Menu.setApplicationMenu(null)
+/** @type {Electron.Rectangle} */
+let mainBounds = { width: 800, height:600, x: 50, y: 50 }
 
 /** @type {BrowserWindow} */
 let mainWindow
@@ -42,6 +44,19 @@ const storageDefaults = dirarr.reduce((acc, cur) => {
     return acc
 }, {})
 
+try {
+    const configData = await fsAsync.readFile(path.join(app.getPath('userData'), 'config.json'), 'utf-8')
+    const parsed = JSON.parse(configData)
+    for (const key in parsed) {
+        if (key === 'mainWindow') {
+            mainBounds = parsed[key]
+        } else {
+            if (key in modules) modules[key].bounds = parsed[key]
+        }
+    }
+} catch (_) {
+    
+}
 
 
 ipcMain.on('stdout', (_, from, args) => {
@@ -68,6 +83,10 @@ ipcMain.on('main:start-module', (_, v) => {
         if (mainWindow) mainWindow.webContents.send('state', v, false) 
     }).once('close', () => {
         context.hide()
+    }).on('moved', () => {
+        modules[v].bounds = context.getBounds()
+    }).on('resized', () => {
+        modules[v].bounds = context.getBounds()
     })
 })
 
@@ -110,9 +129,16 @@ ipcMain.handle('main:ctx', (_, x, y, items) => {
 app.once('before-quit', (_) => {
     /** @type {import('./shared_types.d.ts').MultiModuleStorage} */
     const st = {}
+    const config = {}
+    config['mainWindow'] = mainBounds
     for (const key in modules) {
         st[key] = modules[key].storage
+        config[key] = modules[key].bounds
+    }
     writeStorageData(st)
+
+    fsSync.writeFileSync(path.join(app.getPath('userData'), 'config.json'), JSON.stringify(config), 'utf-8')
+    
     console.log('saved')
 })
 
@@ -138,6 +164,10 @@ app.whenReady().then(async () => {
     mainWindow = createMainWindow(mainBounds).once('closed', () => {
         mainWindow = null
         app.quit()
+    }).on('moved', () => {
+        mainBounds = mainWindow.getBounds()
+    }).on('resized', () => {
+        mainBounds = mainWindow.getBounds()
     })
 }).catch((err) => {
     console.error(err)

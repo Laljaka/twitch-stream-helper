@@ -24,16 +24,20 @@ export class Module {
     ref
     /** @type {string} @public */
     html
+    /** @type {Electron.Rectangle} */
+    bounds
     /** @param {string} name */
     constructor(name) {
         this.name = name
         this.storage = {}
         this.ref = null
+        this.bounds = { width: 800, height:600, x: 50, y:50 }
     }
 
     async initialise() {
         try {
-            const prom1 = fs.readFile(path.join(__moduledir, `/${this.name}/${this.name}.desc.json`), {encoding: "utf-8"}).then((data) => {
+            const prom1 = fs.readFile(path.join(__moduledir, `/${this.name}/${this.name}.desc.json`), {encoding: "utf-8"})
+            .then((data) => {
                 this.data = JSON.parse(data)
                 for (const key in schema) {
                     if (!(key in this.data) || typeof this.data[key] !== schema[key]) {
@@ -43,7 +47,8 @@ export class Module {
                 Object.freeze(this.data)
             })
             
-            const prom2 = fs.readFile(path.join(__moduledir, `/${this.name}/${this.name}.desc.html`), {encoding: "utf-8"}).then((html) => {
+            const prom2 = fs.readFile(path.join(__moduledir, `/${this.name}/${this.name}.desc.html`), {encoding: "utf-8"})
+            .then((html) => {
                 this.html = html
             })
             
@@ -58,20 +63,24 @@ export class Module {
     createWindow() {
         if (this.ref) throw new ReferenceError('Window already exists')
         this.ref = new BrowserWindow({
-            width: 800,
-            height: 600,
+            width: this.bounds.width, 
+            height: this.bounds.height,
+            x: this.bounds.x,
+            y: this.bounds.y,
             show: false,
+            fullscreenable: false,
             autoHideMenuBar: true,
+            fullscreen: false,
+            maximizable: false,
             webPreferences: {
                 nodeIntegration: !this.data.secure,
                 contextIsolation: this.data.secure,
                 preload: path.join(__dir, `modules/${this.name}/${this.name}.preload.cjs`),
-                //preload: path.join(__dirname, `modules/${moduleName}/${moduleName}.preload.js`),
                 additionalArguments: [`:;:${JSON.stringify(this.storage)}`]
             }
         })
 
-        if (this.data.shown) this.ref.once('ready-to-show', this.ref.show)
+        if (this.data.shown) this.ref.once('ready-to-show', () => this.ref.show())
 
         this.ref.once(('closed'), () => { this.ref = null })
 

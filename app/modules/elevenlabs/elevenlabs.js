@@ -139,15 +139,20 @@ async function task(args) {
     })
 }
 
-const controls = document.getElementById('controls')
+/** @type {HTMLInputElement} */
+const controls = document.querySelector('#controls')
+controls.value = localStorage.getItem('volume') || '50'
 
 const imgsrc = document.querySelector('img')
 
 const skip = document.querySelector('button')
 
 controls.addEventListener('input', () => {
-    //@ts-ignore
     audio.volume = parseFloat(controls.value) / 100
+})
+
+controls.addEventListener('change', () => {
+    localStorage.setItem('volume', controls.value)
 })
 
 
@@ -169,3 +174,13 @@ window.elevenlabsApi.ready()
 
 
 window.elevenlabsApi.stdout(window.elevenlabsApi.credentials)
+
+
+function debounce(callback, delay) {
+    let timer
+    
+    return (...args) => {
+        clearTimeout(timer)
+        timer = setTimeout(() => callback(...args), delay)
+    }
+}
