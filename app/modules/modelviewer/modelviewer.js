@@ -9,7 +9,7 @@ class TimeLock {
     lock() {
         if (!this.locked) this.locked = true
         window.clearTimeout(this.#timer)
-        this.#timer = window.setTimeout(() => this.locked = false, 500)
+        this.#timer = window.setTimeout(() => this.locked = false, 200)
     }
 }
 
@@ -30,11 +30,16 @@ window.addEventListener('error', err)
 window.modelviewerApi.stdout(window.modelviewerApi.credentials)
 
 const scene = new THREE.Scene()
+
 scene.background = new THREE.Color(0x00ff00)
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.4, 10)
+
 const renderer = new THREE.WebGLRenderer()
-document.body.appendChild(renderer.domElement)
+
 renderer.setSize(window.innerWidth, window.innerHeight)
+document.body.appendChild(renderer.domElement)
+renderer.setPixelRatio(window.devicePixelRatio)
 
 const resizeLock = new TimeLock()
 
@@ -45,6 +50,7 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix()
 
     renderer.setSize(window.innerWidth, window.innerHeight)
+    renderer.setPixelRatio(window.devicePixelRatio)
 })
 
 const loader = new OBJLoader()
@@ -60,8 +66,8 @@ camera.position.z = 3;
 const light = new THREE.AmbientLight( 0xffffff );
 scene.add(light);
 
-let xrot = (credentials['xrot'] / credentials['mul']) || 0.1
-let yrot = (credentials['yrot'] / credentials['mul']) || 0.1
+let xrot = (credentials['xrot'] / credentials['mul']) || 0.01
+let yrot = (credentials['yrot'] / credentials['mul']) || 0.01
 
 window.modelviewerApi.stdout('loading...')
 
@@ -82,7 +88,7 @@ if (!isOBJ) crash(new ReferenceError('Loaded file is not an OBJ'))
 
 scene.add(model);
 function animate() {
-    window.requestAnimationFrame(animate);
+    requestAnimationFrame(animate);
     if (resizeLock.locked) return;
     model.rotation.x += xrot
     model.rotation.y += yrot

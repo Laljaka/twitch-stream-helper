@@ -147,6 +147,8 @@ app.on('window-all-closed', () => console.log('all closed'))
 
 
 app.whenReady().then(async () => {
+    const { screen } = await import('electron/main')
+    console.log(screen.getAllDisplays(), screen.getPrimaryDisplay())
     communicator = utilityProcess.fork(path.join(__dir, '/communicator.js'))   
     communicator.once('exit', (code) => {
         if (mainWindow) {

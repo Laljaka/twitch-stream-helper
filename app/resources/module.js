@@ -63,6 +63,7 @@ export class Module {
     createWindow() {
         if (this.ref) throw new ReferenceError('Window already exists')
         this.ref = new BrowserWindow({
+            title: this.data.displayName,
             width: this.bounds.width, 
             height: this.bounds.height,
             x: this.bounds.x,
