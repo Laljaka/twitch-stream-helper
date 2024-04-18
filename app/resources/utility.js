@@ -32,44 +32,21 @@ export function createMainWindow() {
  * @param {import('../shared_types.d.ts').MultiModuleStorage} defaults 
  * @returns {Promise<import('../shared_types.d.ts').MultiModuleStorage>}
  */
-export function readStorageData(defaults) {
-    return new Promise((res, rej) => {
-        fs.readFile(__filepath, (err1, data) => {
-            if (err1) {
-                fs.open(__filepath, 'w', (err2, fd) => {
-                    if (err2) rej(`Could not open the old file nor create a new one -- ${err1} + ${err2}`)
-                    else {
-                        fs.writeSync(fd, safeStorage.encryptString(JSON.stringify(defaults)))
-                        fs.closeSync(fd)
-                        res(defaults)
-                    }
-                })
-            } else {
-                try {
-                    const decrypted = safeStorage.decryptString(data)
-                    res(JSON.parse(decrypted))
-                } catch (err) {
-                    console.log(err)
-                    fs.writeFileSync(__filepath, safeStorage.encryptString(JSON.stringify(defaults)))
-                    res(defaults)
+export async function readStorageData(defaults) {
+    try {
+        const file = await fs.promises.readFile(__filepath)
+        const decrypted = safeStorage.decryptString(file)
+        const parsed = JSON.parse(decrypted)
+        return parsed
+    } catch (error) {
+        return defaults
                 }
-                
-            }
-            console.log('read the file')
-        })
-    })
 }
 
 /**
  * 
  * @param {import('../shared_types.d.ts').MultiModuleStorage} d 
- * @returns {Promise<void>}
  */
 export function writeStorageData(d) {
-    return new Promise((res, rej) => {
-        fs.writeFile(__filepath, safeStorage.encryptString(JSON.stringify(d)), (err) => {
-            if (err) rej('How?')
-            else res()
-        })
-    })
+    fs.writeFileSync(__filepath, safeStorage.encryptString(JSON.stringify(d)))
 }

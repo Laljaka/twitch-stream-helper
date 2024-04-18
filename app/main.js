@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain, utilityProcess, dialog, Menu, MessageChannelMain } from 'electron/main'
-import fs from 'node:fs'
+import fsAsync from 'node:fs/promises'
+import fsSync from 'node:fs'
 import path from "node:path"
 import { Module } from './resources/module.js'
 import { createMainWindow, readStorageData, writeStorageData } from './resources/utility.js'
@@ -15,9 +16,8 @@ let mainWindow
 /** @type {Electron.UtilityProcess} */
 let communicator
 
-const dirarr = fs.readdirSync(__moduledir, { withFileTypes: true })
-    .filter((dir) => dir.isDirectory())
-    .map((dir) => dir.name)
+const rawDir = await fsAsync.readdir(__moduledir, { withFileTypes: true })
+const dirarr = rawDir.filter((dir) => dir.isDirectory()).map((dir) => dir.name)
 
 const initArray = []
 
@@ -103,15 +103,13 @@ ipcMain.handle('main:ctx', (_, x, y, items) => {
 })
 
 
-app.once('before-quit', async (ev) => {
-    ev.preventDefault()
+app.once('before-quit', (_) => {
     /** @type {import('./shared_types.d.ts').MultiModuleStorage} */
     const st = {}
     for (const key in modules) {
         st[key] = modules[key].storage
-    }
-    await writeStorageData(st)
-    app.quit()
+    writeStorageData(st)
+    console.log('saved')
 })
 
 
