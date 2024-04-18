@@ -63,8 +63,12 @@ ipcMain.on('state', (_, from, state) => {
 })
 
 ipcMain.on('main:start-module', (_, v) => {
-    modules[v].createWindow()
-        .once('closed', () => { if (mainWindow) mainWindow.webContents.send('state', v, false) })
+    const context = modules[v].createWindow()
+    context.once('closed', () => { 
+        if (mainWindow) mainWindow.webContents.send('state', v, false) 
+    }).once('close', () => {
+        context.hide()
+    })
 })
 
 ipcMain.on('main:stop-module', (_, v) => {
@@ -131,8 +135,7 @@ app.whenReady().then(async () => {
         if (key in modules) modules[key].setStorage(parsed[key])
     }
     
-    mainWindow = createMainWindow()
-    mainWindow.once('closed', () => {
+    mainWindow = createMainWindow(mainBounds).once('closed', () => {
         mainWindow = null
         app.quit()
     })

@@ -161,17 +161,8 @@ const headers = {
 
 const queue = new TaskQueue()
 
-
-window.elevenlabsApi.toClose(() => {
-    window.close()
-})
-
-window.addEventListener('beforeunload', (ev) => {
-    console.log('HERE BE VOLUME SAVING')
-})
-
-queue.addTask(() => task('Testing 1 a very long text Testing 1 a very long textTesting 1 a very long text'))
-queue.addTask(() => task('Testing 2 electric boogaloo'))
+//queue.addTask(() => task('Testing 1 a very long text Testing 1 a very long textTesting 1 a very long text'))
+//queue.addTask(() => task('Testing 2 electric boogaloo'))
 
 window.elevenlabsApi.stdout('finished loading module')
 window.elevenlabsApi.ready()

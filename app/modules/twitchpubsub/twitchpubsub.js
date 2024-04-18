@@ -146,8 +146,6 @@ async function message(data) {
 }
 
 
-window.twitchpubsubApi.onClose(shutdown)
-
 window.twitchpubsubApi.ready()
 
 

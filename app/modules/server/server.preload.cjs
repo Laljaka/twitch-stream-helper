@@ -24,7 +24,6 @@ ipcRenderer.once('setUpChannelsResp', (ev) => {
 })
 
 window.serverApi = {
-    toClose: (callback) => { ipcRenderer.on('close', () => callback()) },
     credentials: cred,
     stdout: (message) => { ipcRenderer.send('stdout', _filename, message) },
     ready: () => { ipcRenderer.send('state', _filename, true) },

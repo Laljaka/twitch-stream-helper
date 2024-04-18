@@ -3,10 +3,6 @@ import { OBJLoader } from "three/addons";
 
 const credentials = JSON.parse(window.modelviewerApi.credentials)
 
-window.modelviewerApi.toClose(() => {
-    window.close()
-})
-
 window.modelviewerApi.receiver((m) => {
     window.modelviewerApi.stdout(m)
 })

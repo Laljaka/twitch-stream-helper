@@ -83,7 +83,8 @@ export class Module {
     /** @public */
     closeWindow() {
         if (!this.ref) throw new ReferenceError('Window does not exist')
-        this.ref.webContents.send('close')
+        this.ref.close()
+        //this.ref = null
     }
 
     /** @param {import("../shared_types.d.ts").ModuleStorage} storage @public */
