@@ -1,6 +1,18 @@
 import * as THREE from "three";
 import { OBJLoader } from "three/addons";
 
+class TimeLock {
+    locked = false
+    /** @type {number} */
+    #timer
+
+    lock() {
+        if (!this.locked) this.locked = true
+        window.clearTimeout(this.#timer)
+        this.#timer = window.setTimeout(() => this.locked = false, 500)
+    }
+}
+
 const credentials = JSON.parse(window.modelviewerApi.credentials)
 
 window.modelviewerApi.receiver((m) => {
@@ -24,7 +36,11 @@ const renderer = new THREE.WebGLRenderer()
 document.body.appendChild(renderer.domElement)
 renderer.setSize(window.innerWidth, window.innerHeight)
 
+const resizeLock = new TimeLock()
+
 window.addEventListener('resize', () => {
+    resizeLock.lock()
+    
     camera.aspect = window.innerWidth / window.innerHeight
     camera.updateProjectionMatrix()
 
@@ -42,41 +58,70 @@ const interval = 1 / 30;
 camera.position.z = 3;
 
 const light = new THREE.AmbientLight( 0xffffff );
-scene.add( light );
+scene.add(light);
 
-let xrot = credentials['xrot'] / credentials['mul']
-let yrot = credentials['yrot'] / credentials['mul']
+let xrot = (credentials['xrot'] / credentials['mul']) || 0.1
+let yrot = (credentials['yrot'] / credentials['mul']) || 0.1
 
+window.modelviewerApi.stdout('loading...')
 
-window.modelviewerApi.stdout('loading the model')
-mtlload.load(credentials['texture'], (texture) => {
-    window.modelviewerApi.stdout('texture loaded')
-    loader.load(credentials['model'], (obj) => {
-        window.modelviewerApi.stdout('model loaded')
-        obj.traverse((child) => {
-            if (child instanceof THREE.Mesh) child.material.map = texture
-        })
-        scene.add( obj );
-        function animate() {
-            requestAnimationFrame( animate );
-            obj.rotation.x += xrot
-            obj.rotation.y += yrot
-            delta += clock.getDelta();
+const { texture, model } = await loadResources(
+    credentials['texture'], 
+    credentials['model']
+).catch((err) => crash(err))
 
-            if (delta  > interval) {
-                renderer.render( scene, camera );
-
-                delta = delta % interval;
-            }
-        }
-        window.modelviewerApi.stdout('displaying scene')
-        window.modelviewerApi.ready()
-        animate()
-    }, undefined, (err) => {
-        window.modelviewerApi.stdout(`an error has occured during model load`)
-        window.close()
-    })
-}, undefined, (err) => {
-    window.modelviewerApi.stdout(`an error has occured during texture load`)
-    window.close()
+let isOBJ = false
+model.traverse((child) => {
+    if (child instanceof THREE.Mesh) {
+        child.material.map = texture
+        isOBJ = true
+    }
 })
+
+if (!isOBJ) crash(new ReferenceError('Loaded file is not an OBJ'))
+
+scene.add(model);
+function animate() {
+    window.requestAnimationFrame(animate);
+    if (resizeLock.locked) return;
+    model.rotation.x += xrot
+    model.rotation.y += yrot
+    delta += clock.getDelta();
+
+    if (delta > interval) {
+        renderer.render( scene, camera );
+
+        delta = delta % interval;
+    }
+}
+window.modelviewerApi.stdout('displaying scene')
+window.modelviewerApi.ready()
+animate()
+
+/**
+ * @param {Error} reason
+ * @returns {never}
+ */
+function crash(reason) {
+    window.removeEventListener('error', err)
+    window.modelviewerApi.stdout(reason.stack? reason.stack : `${reason.name} ${reason.message}`)
+    window.close()
+    throw undefined
+}
+
+/**
+ * @param {string} texturePath
+ * @param {string} modelPath
+ */
+async function loadResources(texturePath, modelPath) {
+    const [texture, model] = await Promise.allSettled([
+        mtlload.loadAsync(texturePath),
+        loader.loadAsync(modelPath)
+    ])
+    if (texture.status !== 'fulfilled') throw new ReferenceError(`could not load texture`)
+    if (model.status !== 'fulfilled') throw new ReferenceError(`could not load model`)
+    
+    return {texture: texture.value, model: model.value}
+}
+
+
