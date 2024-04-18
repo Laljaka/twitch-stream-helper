@@ -119,22 +119,22 @@ async function message(data) {
             timeout = setTimeout(reconnect, 100000)
             switch (json.payload.event.reward.title) {
                 case "Spin the rat right!":
-                    window.twitchpubsubApi.sender({ type: "data", to: "3d", message: { axis: "y" , amount: 0.15 } })
+                    window.twitchpubsubApi.sender({ axis: "y" , amount: 1 })
                     break
                 case "Spin the rat up!":
-                    window.twitchpubsubApi.sender({ type: "data", to: "3d", message: { axis: "x" , amount: -0.15 } })
+                    window.twitchpubsubApi.sender({ axis: "x" , amount: -1 })
                     break
                 case "Spin the rat down!":
-                    window.twitchpubsubApi.sender({ type: "data", to: "3d", message: { axis: "x" , amount: 0.15 } })
+                    window.twitchpubsubApi.sender({ axis: "x" , amount: 1 })
                     break
                 case "Spin the rat left!":
-                    window.twitchpubsubApi.sender({ type: "data", to: "3d", message: { axis: "y" , amount: -0.15 } })
+                    window.twitchpubsubApi.sender({ axis: "y" , amount: -1 })
                     break
                 case "TTS Glukhar from Tarkov":
-                    window.twitchpubsubApi.sender({ type: "data", to: "AI", message: { voice: "Glukhar" , text: json.payload.event.user_input } })
+                    window.twitchpubsubApi.sender({ voice: "Glukhar" , text: json.payload.event.user_input })
                     break
                 case "TTS Birdeye from Tarkov":
-                    window.twitchpubsubApi.sender({ type: "data", to: "AI", message: { voice: "Birdeye" , text: json.payload.event.user_input } })
+                    window.twitchpubsubApi.sender({ voice: "Birdeye" , text: json.payload.event.user_input })
                     break
             }
             break

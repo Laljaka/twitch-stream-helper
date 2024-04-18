@@ -10,8 +10,6 @@ for (const arg of process.argv) {
 
 if (!cred) window.close()
 
-let isReady = false
-
 /** @type {MessagePort | undefined} */
 let port
 
@@ -19,7 +17,6 @@ const portStatus = new EventEmitter()
 
 ipcRenderer.once('setUpChannelsResp', (ev) => {
     port = ev.ports[0]
-    isReady = true
     portStatus.emit('ready')
 })
 
@@ -28,7 +25,7 @@ contextBridge.exposeInMainWorld(`${_filename}Api`, {
     stdout: (args) => ipcRenderer.send('stdout', _filename, args),
     ready: () => ipcRenderer.send('state', _filename, true),
     receiver: (callback) => {
-        if (!isReady) {
+        if (!port) {
             portStatus.once('ready', () => {
                 port.addEventListener('message', (m) => {
                     callback(m.data)
