@@ -4,9 +4,10 @@ import fsSync from 'node:fs'
 import path from "node:path"
 import { Module } from './resources/module.js'
 import { createMainWindow, readStorageData, writeStorageData } from './resources/utility.js'
+import { fileURLToPath } from 'url';
 
-const __dir = path.join(process.cwd(), '/app')
-const __moduledir = path.join(__dir, '/modules')
+const __dirname = path.join(app.getAppPath(), '/app');
+const __moduledir = path.join(__dirname, '/modules')
 
 //Menu.setApplicationMenu(null)
 /** @type {Electron.Rectangle} */
@@ -149,7 +150,7 @@ app.on('window-all-closed', () => console.log('all closed'))
 app.whenReady().then(async () => {
     const { screen } = await import('electron/main')
     console.log(screen.getAllDisplays(), screen.getPrimaryDisplay())
-    communicator = utilityProcess.fork(path.join(__dir, '/communicator.js'))   
+    communicator = utilityProcess.fork(path.join(__dirname, '/communicator.js'))   
     communicator.once('exit', (code) => {
         if (mainWindow) {
             console.log('window still exists, process most likely crashed, closing...', code)

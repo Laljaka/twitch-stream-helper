@@ -2,7 +2,7 @@ import { BrowserWindow, safeStorage, app } from "electron/main"
 import fs from "node:fs"
 import path from "node:path"
 
-const _dir = path.join(process.cwd(), '/app')
+const _dir = path.join(app.getAppPath(), '/app')
 const __filepath = path.join(app.getPath('userData'), '/storage.bin')
 
 /**

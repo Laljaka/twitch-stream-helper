@@ -1,7 +1,7 @@
 {
   "name": "stream-helper",
   "version": "1.0.0",
-  "description": "",
+  "description": "A simple modular helper program for twitch streaming",
   "type": "module",
   "main": "app/main.js",
   "scripts": {
@@ -13,9 +13,10 @@
   "devDependencies": {
     "@types/three": "^0.163.0",
     "electron": "^29.2.0",
+    "three": "^0.163.0",
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "three": "^0.163.0"
+    
   }
 }

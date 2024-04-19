@@ -1,9 +1,9 @@
-import { BrowserWindow } from "electron/main"
+import { BrowserWindow, app } from "electron/main"
 import fs from "node:fs/promises"
 import path from "node:path"
 
-const __dir = path.join(process.cwd(), '/app')
-const __moduledir = path.join(__dir, '/modules')
+const __dirname = path.join(app.getAppPath(), '/app');
+const __moduledir = path.join(__dirname, '/modules')
 
 const schema = {
     "displayName": "string",
@@ -76,7 +76,7 @@ export class Module {
             webPreferences: {
                 nodeIntegration: !this.data.secure,
                 contextIsolation: this.data.secure,
-                preload: path.join(__dir, `modules/${this.name}/${this.name}.preload.cjs`),
+                preload: path.join(__dirname, `modules/${this.name}/${this.name}.preload.cjs`),
                 additionalArguments: [`:;:${JSON.stringify(this.storage)}`]
             }
         })

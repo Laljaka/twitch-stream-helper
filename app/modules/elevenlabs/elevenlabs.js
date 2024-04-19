@@ -82,7 +82,7 @@ async function task(args) {
 
     //})
 
-    imgsrc.src = "../../../content/speaker.svg"
+    imgsrc.src = "../../content/speaker.svg"
 
     /**
      * 
@@ -123,7 +123,7 @@ async function task(args) {
             audio.onended = null
             //source.removeSourceBuffer(buffer)
             window.URL.revokeObjectURL(audio.src)
-            imgsrc.src = "../../../content/nospeaker.svg"
+            imgsrc.src = "../../content/nospeaker.svg"
             res()
         }
         skip.onclick = () => {
@@ -133,7 +133,7 @@ async function task(args) {
             toSkip = true
             //source.removeSourceBuffer(buffer)
             window.URL.revokeObjectURL(audio.src)
-            imgsrc.src = "../../../content/nospeaker.svg"
+            imgsrc.src = "../../content/nospeaker.svg"
             res()
         }
     })
