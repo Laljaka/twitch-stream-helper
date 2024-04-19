@@ -1,9 +1,6 @@
-import { BrowserWindow, app } from "electron/main"
+import { BrowserWindow } from "electron/main"
 import fs from "node:fs/promises"
 import path from "node:path"
-
-const __dirname = app.getAppPath();
-const __moduledir = path.join(__dirname, '/modules')
 
 const schema = {
     "displayName": "string",
@@ -26,17 +23,23 @@ export class Module {
     html
     /** @type {Electron.Rectangle} */
     bounds
-    /** @param {string} name */
-    constructor(name) {
+    /** @type {string} @protected */
+    moduleDirectory
+    /** 
+     * @param {string} name 
+     * @param {string} moduleDirectory 
+     */
+    constructor(name, moduleDirectory) {
         this.name = name
         this.storage = {}
         this.ref = null
         this.bounds = { width: 800, height:600, x: 50, y:50 }
+        this.moduleDirectory = moduleDirectory
     }
 
     async initialise() {
         try {
-            const prom1 = fs.readFile(path.join(__moduledir, `/${this.name}/${this.name}.desc.json`), {encoding: "utf-8"})
+            const prom1 = fs.readFile(path.join(this.moduleDirectory, this.name, `${this.name}.desc.json`), {encoding: "utf-8"})
             .then((data) => {
                 this.data = JSON.parse(data)
                 for (const key in schema) {
@@ -47,7 +50,7 @@ export class Module {
                 Object.freeze(this.data)
             })
             
-            const prom2 = fs.readFile(path.join(__moduledir, `/${this.name}/${this.name}.desc.html`), {encoding: "utf-8"})
+            const prom2 = fs.readFile(path.join(this.moduleDirectory, this.name, `${this.name}.desc.html`), {encoding: "utf-8"})
             .then((html) => {
                 this.html = html
             })
@@ -76,7 +79,7 @@ export class Module {
             webPreferences: {
                 nodeIntegration: !this.data.secure,
                 contextIsolation: this.data.secure,
-                preload: path.join(__dirname, `modules/${this.name}/${this.name}.preload.cjs`),
+                preload: path.join(this.moduleDirectory, this.name, `${this.name}.preload.cjs`),
                 additionalArguments: [`:;:${JSON.stringify(this.storage)}`]
             }
         })
@@ -85,7 +88,7 @@ export class Module {
 
         this.ref.once(('closed'), () => { this.ref = null })
 
-        this.ref.loadFile(path.join(__moduledir, `/${this.name}/${this.name}.html`))
+        this.ref.loadFile(path.join(this.moduleDirectory, this.name, `${this.name}.html`))
         
         return this.ref
     }

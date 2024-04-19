@@ -4,10 +4,15 @@ import fsSync from 'node:fs'
 import path from "node:path"
 import { Module } from './resources/module.js'
 import { createMainWindow, readStorageData, writeStorageData } from './resources/utility.js'
-import { fileURLToPath } from 'url';
+
+process.once('uncaughtException', (err) => {
+    app.quit()
+    throw err
+})
 
 const __dirname = app.getAppPath();
-const __moduledir = path.join(__dirname, '/modules')
+let __moduledir = app.isPackaged? path.join(__dirname, "..", "modules") : path.join(__dirname, 'modules')
+
 
 //Menu.setApplicationMenu(null)
 /** @type {Electron.Rectangle} */
@@ -26,7 +31,7 @@ const initArray = []
 
 /** @type {import('./shared_types.d.ts').Modules} */
 const modules = dirarr.reduce((acc, cur) => {
-    const ref = new Module(cur)
+    const ref = new Module(cur, __moduledir)
     initArray.push(ref.initialise())
     acc[cur] = ref
     return acc
@@ -148,8 +153,8 @@ app.on('window-all-closed', () => console.log('all closed'))
 
 
 app.whenReady().then(async () => {
-    const { screen } = await import('electron/main')
-    console.log(screen.getAllDisplays(), screen.getPrimaryDisplay())
+    //const { screen } = await import('electron/main')
+    //console.log(screen.getAllDisplays(), screen.getPrimaryDisplay())
     communicator = utilityProcess.fork(path.join(__dirname, '/communicator.js'))   
     communicator.once('exit', (code) => {
         if (mainWindow) {
