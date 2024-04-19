@@ -2,7 +2,7 @@ import { BrowserWindow, app } from "electron/main"
 import fs from "node:fs/promises"
 import path from "node:path"
 
-const __dirname = path.join(app.getAppPath(), '/app');
+const __dirname = app.getAppPath();
 const __moduledir = path.join(__dirname, '/modules')
 
 const schema = {

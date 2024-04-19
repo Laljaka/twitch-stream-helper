@@ -9,5 +9,5 @@
     "module": "NodeNext",
     "target": "esnext"
   },
-  "include": ["app/**/*"]
+  //"include": ["/**/*"]
 }

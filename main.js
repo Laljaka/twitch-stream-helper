@@ -6,7 +6,7 @@ import { Module } from './resources/module.js'
 import { createMainWindow, readStorageData, writeStorageData } from './resources/utility.js'
 import { fileURLToPath } from 'url';
 
-const __dirname = path.join(app.getAppPath(), '/app');
+const __dirname = app.getAppPath();
 const __moduledir = path.join(__dirname, '/modules')
 
 //Menu.setApplicationMenu(null)

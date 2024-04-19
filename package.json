@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "A simple modular helper program for twitch streaming",
   "type": "module",
-  "main": "app/main.js",
+  "main": "main.js",
   "scripts": {
     "start": "electron ."
   },
@@ -11,12 +11,10 @@
   "author": "Laljaka",
   "license": "ISC",
   "devDependencies": {
+    "@electron/packager": "^18.3.2",
     "@types/three": "^0.163.0",
     "electron": "^29.2.0",
     "three": "^0.163.0",
     "typescript": "^5.4.5"
-  },
-  "dependencies": {
-    
   }
 }
