@@ -1,4 +1,4 @@
-import { BrowserWindow } from "electron/main"
+import { BrowserWindow, app } from "electron/main"
 import fs from "node:fs/promises"
 import path from "node:path"
 
@@ -39,7 +39,7 @@ export class Module {
 
     async initialise() {
         try {
-            const prom1 = fs.readFile(path.join(this.moduleDirectory, this.name, `${this.name}.desc.json`), {encoding: "utf-8"})
+            const prom1 = fs.readFile(path.join(this.moduleDirectory, app.isPackaged ? `${this.name}.asar` : this.name, `${this.name}.desc.json`), {encoding: "utf-8"})
             .then((data) => {
                 this.data = JSON.parse(data)
                 for (const key in schema) {
@@ -50,7 +50,7 @@ export class Module {
                 Object.freeze(this.data)
             })
             
-            const prom2 = fs.readFile(path.join(this.moduleDirectory, this.name, `${this.name}.desc.html`), {encoding: "utf-8"})
+            const prom2 = fs.readFile(path.join(this.moduleDirectory, app.isPackaged ? `${this.name}.asar` : this.name, `${this.name}.desc.html`), {encoding: "utf-8"})
             .then((html) => {
                 this.html = html
             })
@@ -79,7 +79,7 @@ export class Module {
             webPreferences: {
                 nodeIntegration: !this.data.secure,
                 contextIsolation: this.data.secure,
-                preload: path.join(this.moduleDirectory, this.name, `${this.name}.preload.cjs`),
+                preload: path.join(this.moduleDirectory, app.isPackaged ? `${this.name}.asar` : this.name, `${this.name}.preload.cjs`),
                 additionalArguments: [`:;:${JSON.stringify(this.storage)}`]
             }
         })
@@ -88,7 +88,7 @@ export class Module {
 
         this.ref.once(('closed'), () => { this.ref = null })
 
-        this.ref.loadFile(path.join(this.moduleDirectory, this.name, `${this.name}.html`))
+        this.ref.loadFile(path.join(this.moduleDirectory, app.isPackaged ? `${this.name}.asar` : this.name, `${this.name}.html`))
         
         return this.ref
     }

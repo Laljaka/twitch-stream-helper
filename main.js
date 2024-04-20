@@ -11,7 +11,7 @@ process.once('uncaughtException', (err) => {
 })
 
 const __dirname = app.getAppPath();
-let __moduledir = app.isPackaged? path.join(__dirname, "..", "modules") : path.join(__dirname, 'modules')
+let __moduledir = app.isPackaged ? path.join(process.resourcesPath, "modules") : path.join(__dirname, 'modules')
 
 
 //Menu.setApplicationMenu(null)
@@ -25,7 +25,9 @@ let mainWindow
 let communicator
 
 const rawDir = await fsAsync.readdir(__moduledir, { withFileTypes: true })
-const dirarr = rawDir.filter((dir) => dir.isDirectory()).map((dir) => dir.name)
+const dirarr = rawDir.filter((dir) => {
+    return app.isPackaged ? dir.name.endsWith('.asar') : dir.isDirectory()
+}).map((dir) => dir.name.endsWith('.asar') ? dir.name.slice(null, -5) : dir.name)
 
 const initArray = []
 
