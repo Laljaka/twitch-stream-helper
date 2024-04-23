@@ -35,8 +35,8 @@ export function createMainWindow(bounds) {
 }
 
 /**
- * @param {import('../shared_types.d.ts').MultiModuleStorage} defaults 
- * @returns {Promise<import('../shared_types.d.ts').MultiModuleStorage>}
+ * @param {import('../shared_types.d.ts').MultiComponentStorage} defaults 
+ * @returns {Promise<import('../shared_types.d.ts').MultiComponentStorage>}
  */
 export async function readStorageData(defaults) {
     try {
@@ -51,7 +51,7 @@ export async function readStorageData(defaults) {
 
 /**
  * 
- * @param {import('../shared_types.d.ts').MultiModuleStorage} d 
+ * @param {import('../shared_types.d.ts').MultiComponentStorage} d 
  */
 export function writeStorageData(d) {
     fs.writeFileSync(__filepath, safeStorage.encryptString(JSON.stringify(d)))

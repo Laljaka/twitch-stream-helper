@@ -10,12 +10,12 @@ const schema = {
     "shown": "boolean"
 }
 
-export class Module {
+export class Component {
     /** @public @readonly */
     name
-    /** @type {import("../shared_types.d.ts").ModuleData} @public */
+    /** @type {import("../shared_types.d.ts").ComponentData} @public */
     data
-    /** @type {import("../shared_types.d.ts").ModuleStorage} @public */
+    /** @type {import("../shared_types.d.ts").ComponentStorage} @public */
     storage
     /** @type {BrowserWindow} @protected */
     ref
@@ -24,22 +24,22 @@ export class Module {
     /** @type {Electron.Rectangle} */
     bounds
     /** @type {string} @protected */
-    moduleDirectory
+    componentDirectory
     /** 
      * @param {string} name 
-     * @param {string} moduleDirectory 
+     * @param {string} componentDirectory 
      */
-    constructor(name, moduleDirectory) {
+    constructor(name, componentDirectory) {
         this.name = name
         this.storage = {}
         this.ref = null
         this.bounds = { width: 800, height:600, x: 50, y:50 }
-        this.moduleDirectory = moduleDirectory
+        this.componentDirectory = componentDirectory
     }
 
     async initialise() {
         try {
-            const prom1 = fs.readFile(path.join(this.moduleDirectory, app.isPackaged ? `${this.name}.asar` : this.name, `${this.name}.desc.json`), {encoding: "utf-8"})
+            const prom1 = fs.readFile(path.join(this.componentDirectory, app.isPackaged ? `${this.name}.asar` : this.name, `${this.name}.desc.json`), {encoding: "utf-8"})
             .then((data) => {
                 this.data = JSON.parse(data)
                 for (const key in schema) {
@@ -50,7 +50,7 @@ export class Module {
                 Object.freeze(this.data)
             })
             
-            const prom2 = fs.readFile(path.join(this.moduleDirectory, app.isPackaged ? `${this.name}.asar` : this.name, `${this.name}.desc.html`), {encoding: "utf-8"})
+            const prom2 = fs.readFile(path.join(this.componentDirectory, app.isPackaged ? `${this.name}.asar` : this.name, `${this.name}.desc.html`), {encoding: "utf-8"})
             .then((html) => {
                 this.html = html
             })
@@ -79,7 +79,7 @@ export class Module {
             webPreferences: {
                 nodeIntegration: !this.data.secure,
                 contextIsolation: this.data.secure,
-                preload: path.join(this.moduleDirectory, app.isPackaged ? `${this.name}.asar` : this.name, `${this.name}.preload.cjs`),
+                preload: path.join(this.componentDirectory, app.isPackaged ? `${this.name}.asar` : this.name, `${this.name}.preload.cjs`),
                 additionalArguments: [`:;:${JSON.stringify(this.storage)}`]
             }
         })
@@ -88,7 +88,7 @@ export class Module {
 
         this.ref.once(('closed'), () => { this.ref = null })
 
-        this.ref.loadFile(path.join(this.moduleDirectory, app.isPackaged ? `${this.name}.asar` : this.name, `${this.name}.html`))
+        this.ref.loadFile(path.join(this.componentDirectory, app.isPackaged ? `${this.name}.asar` : this.name, `${this.name}.html`))
         
         return this.ref
     }
@@ -100,7 +100,7 @@ export class Module {
         //this.ref = null
     }
 
-    /** @param {import("../shared_types.d.ts").ModuleStorage} storage @public */
+    /** @param {import("../shared_types.d.ts").ComponentStorage} storage @public */
     setStorage(storage) {
         this.storage = storage
     }

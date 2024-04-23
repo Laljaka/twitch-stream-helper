@@ -169,7 +169,7 @@ const queue = new TaskQueue()
 //queue.addTask(() => task('Testing 1 a very long text Testing 1 a very long textTesting 1 a very long text'))
 //queue.addTask(() => task('Testing 2 electric boogaloo'))
 
-window.elevenlabsApi.stdout('finished loading module')
+window.elevenlabsApi.stdout('finished loading component')
 window.elevenlabsApi.ready()
 
 

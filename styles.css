@@ -53,7 +53,7 @@ menu {
   }
 }
 
-.module-settings {
+.component-settings {
   flex-grow: 1;
   border-radius: var(--border-radius);
   overflow: inherit;

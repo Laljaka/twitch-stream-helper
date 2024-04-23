@@ -26,13 +26,13 @@ l.log('starting loading')
 
 const mainElement = document.querySelector('main')
 
-for (const moduleName in dataFromMain) {
-    const li = createElementOneLine('li', {id: moduleName, className: 'inactive'})
-    li.innerHTML = `<h3>${dataFromMain[moduleName].displayName}</h3>`
+for (const componentName in dataFromMain) {
+    const li = createElementOneLine('li', {id: componentName, className: 'inactive'})
+    li.innerHTML = `<h3>${dataFromMain[componentName].displayName}</h3>`
     menu.prepend(li)
 
-    const settings = createElementOneLine('div', {id:`-${moduleName}`, className: 'module-settings'})
-    settings.dataset['id'] = moduleName
+    const settings = createElementOneLine('div', {id:`-${componentName}`, className: 'component-settings'})
+    settings.dataset['id'] = componentName
     settings.innerHTML = `
     <fieldset class="wrapper setting" id="target"><legend>Settings</legend>
     </fieldset>
@@ -43,16 +43,16 @@ for (const moduleName in dataFromMain) {
         </label>
     </fieldset>
     <samp class="wrapper">
-        <span>${dataFromMain[moduleName].displayName} :> </span>
+        <span>${dataFromMain[componentName].displayName} :> </span>
     </samp>`
     mainElement.appendChild(settings)
-    l.log(`${moduleName} html loaded`)
+    l.log(`${componentName} html loaded`)
 
     const fieldset = settings.querySelector('#target')
     const form = document.createElement('form')
-    form.dataset['id'] = moduleName
-    form.innerHTML = dataFromMain[moduleName].html
-    l.log(`${moduleName} inner html loaded`)
+    form.dataset['id'] = componentName
+    form.innerHTML = dataFromMain[componentName].html
+    l.log(`${componentName} inner html loaded`)
 
     const cSwitch = settings.querySelector('.switch')
     const switchInput = cSwitch.querySelector('input')
@@ -69,30 +69,30 @@ for (const moduleName in dataFromMain) {
         switchInput.disabled = true
         thumb.style.setProperty('--outline', 'yellow')
         li.style.setProperty('--before-color', "yellow")
-        window.mainApi.controlModule(switchInput.checked, moduleName)
+        window.mainApi.controlComponent(switchInput.checked, componentName)
     })
 
-    l.log(`${moduleName} switches loaded`)
+    l.log(`${componentName} switches loaded`)
 
     form.querySelectorAll(generateQueryAllowed('*', allowedElements)).forEach((elem) => elem.remove())
 
     // clean up html
     form.querySelectorAll(generateQueryAllowed('input', allowedInputs)).forEach((elem) => elem.remove())
-    l.log(`${moduleName} cleaned up`)
+    l.log(`${componentName} cleaned up`)
 
     form.querySelectorAll("input[type=password]").forEach((inp) => generatePasswordReveals(inp))
-    l.log(`${moduleName} reveals set up`)
+    l.log(`${componentName} reveals set up`)
 
     form.querySelectorAll("input[type=file]").forEach((element) => handleFileInput(element))
-    l.log(`${moduleName} file inputs set up`)
+    l.log(`${componentName} file inputs set up`)
 
     for (const elem of form.elements){
         if (elem instanceof HTMLInputElement && elem.className !== 'reveal') {
             const newElem = elem
-            newElem.addEventListener('input', () => window.mainApi.save(moduleName, newElem.name, deduceReturnType(newElem)))
+            newElem.addEventListener('input', () => window.mainApi.save(componentName, newElem.name, deduceReturnType(newElem)))
         }
     }
-    l.log(`${moduleName} saving set up`)
+    l.log(`${componentName} saving set up`)
 
     fieldset.append(form)
 }
@@ -101,13 +101,13 @@ l.log('all preloaded')
 /** @type {string} */
 let context
 
-const modules = document.querySelectorAll('.inactive')
+const components = document.querySelectorAll('.inactive')
 const aaa = document.getElementById('aaa')
 
-modules.forEach((module, key) => {
-    const form = document.getElementById(`-${module.id}`).querySelector('form')
-    /** @type {import("./shared_types.d.ts").ModuleStorage} */
-    const mod = dataFromMain[module.id].storage
+components.forEach((component, key) => {
+    const form = document.getElementById(`-${component.id}`).querySelector('form')
+    /** @type {import("./shared_types.d.ts").ComponentStorage} */
+    const mod = dataFromMain[component.id].storage
     for (let name in mod) {
         const test = mod[name]
         const inp = form.querySelector(`[name="${name}"]`)
@@ -117,11 +117,11 @@ modules.forEach((module, key) => {
         }
     }
 
-    module.addEventListener('click', () => {
+    component.addEventListener('click', () => {
         aaa.style.top = `${(70 * key) + 25}px`
         const previousReference = document.getElementById(`-${context}`)
         if (previousReference) previousReference.style.display = 'none'
-        context = module.id
+        context = component.id
         const settingsReference = document.getElementById(`-${context}`)
         settingsReference.style.display = 'grid'
     })

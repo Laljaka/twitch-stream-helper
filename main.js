@@ -2,7 +2,7 @@ import { app, BrowserWindow, ipcMain, utilityProcess, dialog, Menu, MessageChann
 import fsAsync from 'node:fs/promises'
 import fsSync from 'node:fs'
 import path from "node:path"
-import { Module } from './resources/module.js'
+import { Component } from './resources/component.js'
 import { createMainWindow, readStorageData, writeStorageData } from './resources/utility.js'
 
 process.once('uncaughtException', (err) => {
@@ -11,7 +11,7 @@ process.once('uncaughtException', (err) => {
 })
 
 const __dirname = app.getAppPath();
-let __moduledir = app.isPackaged ? path.join(process.resourcesPath, "modules") : path.join(__dirname, 'modules')
+let __componentsdir = app.isPackaged ? path.join(process.resourcesPath, "components") : path.join(__dirname, 'components')
 
 
 //Menu.setApplicationMenu(null)
@@ -24,16 +24,16 @@ let mainWindow
 /** @type {Electron.UtilityProcess} */
 let communicator
 
-const rawDir = await fsAsync.readdir(__moduledir, { withFileTypes: true })
+const rawDir = await fsAsync.readdir(__componentsdir, { withFileTypes: true })
 const dirarr = rawDir.filter((dir) => {
     return app.isPackaged ? dir.name.endsWith('.asar') : dir.isDirectory()
 }).map((dir) => dir.name.endsWith('.asar') ? dir.name.slice(null, -5) : dir.name)
 
 const initArray = []
 
-/** @type {import('./shared_types.d.ts').Modules} */
-const modules = dirarr.reduce((acc, cur) => {
-    const ref = new Module(cur, __moduledir)
+/** @type {import('./shared_types.d.ts').Components} */
+const components = dirarr.reduce((acc, cur) => {
+    const ref = new Component(cur, __componentsdir)
     initArray.push(ref.initialise())
     acc[cur] = ref
     return acc
@@ -42,11 +42,11 @@ const modules = dirarr.reduce((acc, cur) => {
 const promiseArray = await Promise.allSettled(initArray)
 for (const prom of promiseArray) {
     if (prom.status === 'rejected') {
-        delete modules[prom.reason]
+        delete components[prom.reason]
     }
 }
 
-/** @type {import('./shared_types.d.ts').MultiModuleStorage} @readonly */
+/** @type {import('./shared_types.d.ts').MultiComponentStorage} @readonly */
 const storageDefaults = dirarr.reduce((acc, cur) => {
     acc[cur] = {}
     return acc
@@ -59,7 +59,7 @@ try {
         if (key === 'mainWindow') {
             mainBounds = parsed[key]
         } else {
-            if (key in modules) modules[key].bounds = parsed[key]
+            if (key in components) components[key].bounds = parsed[key]
         }
     }
 } catch (_) {
@@ -78,28 +78,28 @@ ipcMain.on('setUpChannelsReq', (ev, from) => {
 })
 
 ipcMain.on('save', (_, from, key, data) => {
-    modules[from].setStorageKey(key, data)
+    components[from].setStorageKey(key, data)
 })
 
 ipcMain.on('state', (_, from, state) => {
     mainWindow.webContents.send('state', from, state)
 })
 
-ipcMain.on('main:start-module', (_, v) => {
-    const context = modules[v].createWindow()
+ipcMain.on('main:start-component', (_, v) => {
+    const context = components[v].createWindow()
     context.once('closed', () => { 
         if (mainWindow) mainWindow.webContents.send('state', v, false) 
     }).once('close', () => {
         context.hide()
     }).on('moved', () => {
-        modules[v].bounds = context.getBounds()
+        components[v].bounds = context.getBounds()
     }).on('resized', () => {
-        modules[v].bounds = context.getBounds()
+        components[v].bounds = context.getBounds()
     })
 })
 
-ipcMain.on('main:stop-module', (_, v) => {
-    modules[v].closeWindow()
+ipcMain.on('main:stop-component', (_, v) => {
+    components[v].closeWindow()
 })
 
 ipcMain.handle('main:openFile', (_, options) => {
@@ -108,13 +108,26 @@ ipcMain.handle('main:openFile', (_, options) => {
 
 ipcMain.handle('main:loadData', () => {
     const toSend = {}
-    for (const key in modules) {
+    for (const key in components) {
         toSend[key] = {} 
-        toSend[key]['displayName'] = modules[key].data.displayName
-        toSend[key]['storage'] = modules[key].storage
-        toSend[key]['html'] = modules[key].html
+        toSend[key]['displayName'] = components[key].data.displayName
+        toSend[key]['storage'] = components[key].storage
+        toSend[key]['html'] = components[key].html
     }
     return toSend
+})
+
+ipcMain.handle('component:ctx', (_, x, y) => {
+    return new Promise((res, rej) => {
+        const menu = Menu.buildFromTemplate([
+            {   role: 'copy' },
+            {   role: 'cut' },
+            {   role: 'paste' },
+            {   type: 'separator' },
+            {   role: 'toggleDevTools' }
+        ])
+        menu.popup({ window: mainWindow, x: x, y: y, callback: () => res() }) 
+    })
 })
 
 ipcMain.handle('main:ctx', (_, x, y, items) => {
@@ -135,13 +148,13 @@ ipcMain.handle('main:ctx', (_, x, y, items) => {
 
 
 app.once('before-quit', (_) => {
-    /** @type {import('./shared_types.d.ts').MultiModuleStorage} */
+    /** @type {import('./shared_types.d.ts').MultiComponentStorage} */
     const st = {}
     const config = {}
     config['mainWindow'] = mainBounds
-    for (const key in modules) {
-        st[key] = modules[key].storage
-        config[key] = modules[key].bounds
+    for (const key in components) {
+        st[key] = components[key].storage
+        config[key] = components[key].bounds
     }
     writeStorageData(st)
 
@@ -168,7 +181,7 @@ app.whenReady().then(async () => {
     console.log('ready')
     const parsed = await readStorageData(storageDefaults)
     for (const key in parsed) {
-        if (key in modules) modules[key].setStorage(parsed[key])
+        if (key in components) components[key].setStorage(parsed[key])
     }
     
     mainWindow = createMainWindow(mainBounds).once('closed', () => {

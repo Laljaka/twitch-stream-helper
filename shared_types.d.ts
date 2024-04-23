@@ -1,35 +1,33 @@
 import { BrowserWindow } from "electron"
-import { Module } from "./resources/module.js"
+import { Component } from "./resources/component.js"
 
-type ModuleStorage = {
+type ComponentStorage = {
     [key: string]: string | boolean
 }
 
-type MultiModuleStorage = {
-    [key: string]: ModuleStorage
+type MultiComponentStorage = {
+    [key: string]: ComponentStorage
 }
 
 declare global {
     interface Window {
         mainApi: {
             loadData: () => Promise<Send>
-            //startModule: (v: string) => Promise<void>
-            //stopModule: (v: string) => Promise<void>
             toConsole: (calback: (from: string, v: string) => void ) => void
             save: (from: string, key: string, value: string|boolean) => void
             stateUpdate: (callback: (from: string, state: boolean) => void) => void
-            controlModule: (start: boolean, moduleName: string) => void
+            controlComponent: (start: boolean, ComponentName: string) => void
             openFile: (options: Electron.OpenDialogOptions) => Promise<Electron.OpenDialogReturnValue>
             openContext: (x: number, y: number, items: Array<string>) => Promise<string | null>
           }
     }
 }
 
-type Modules = {
-    [key: string]: Module
+type Components = {
+    [key: string]: Component
 }
 
-type ModuleData = {
+type ComponentData = {
     "displayName": string,
     "type": string,
     "mode": string,
@@ -40,7 +38,7 @@ type ModuleData = {
 type Send = {
     [key: string]: {
         displayName: string
-        storage: ModuleStorage
+        storage: ComponentStorage
         html: string
     }
 }

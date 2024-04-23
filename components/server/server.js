@@ -15,7 +15,7 @@ window.serverApi.receiver((m) => {
 const credentials = JSON.parse(window.serverApi.credentials)
 if (!credentials['port']) credentials['port'] = 6969
 
-const __dir = `${process.cwd()}/app/modules/server`
+const __dir = `${process.cwd()}/app/components/server`
 
 const reqMap = {
     '/polls': ["text/html", fs.readFile(`${__dir}/pages/polls.html`)],
@@ -58,7 +58,7 @@ const server = http.createServer((req, res) => {
     if (req.url === '/polls.js') {}
     if (req.url === '/polls') {
         if (req.method === 'GET') {
-            fs.readFile(`${process.cwd()}/dist/modules/http/pages/polls.html`)
+            fs.readFile(`${process.cwd()}/dist/components/http/pages/polls.html`)
                 if (err) {
                     res.writeHead(404)
                     res.end(err.message)
@@ -74,7 +74,7 @@ const server = http.createServer((req, res) => {
         }
     } else if (req.url === '/predictions') {
         if (req.method === "GET") {
-            fs.readFile(`${process.cwd()}/dist/modules/http/pages/predictions.html`, (err, data) => {
+            fs.readFile(`${process.cwd()}/dist/components/http/pages/predictions.html`, (err, data) => {
                 if (err) {
                     res.writeHead(404)
                     res.end(err.message)
