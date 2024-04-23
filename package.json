@@ -6,7 +6,7 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "buildModule": "node build.js"
+    "build": "set NODE_NO_WARNINGS=1&& node build.js"
   },
   "keywords": [],
   "author": "Laljaka",
@@ -18,7 +18,7 @@
     "@types/three": "^0.163.0",
     "electron": "^29.2.0",
     "electron-wix-msi": "^5.1.3",
-    "ora": "^8.0.1",
+    "listr2": "^8.2.1",
     "typescript": "^5.4.5"
   },
   "dependencies": {
