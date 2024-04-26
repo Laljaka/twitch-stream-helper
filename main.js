@@ -72,9 +72,7 @@ ipcMain.on('stdout', (_, from, args) => {
 })
 
 ipcMain.on('setUpChannelsReq', (ev, from) => {
-    const { port1, port2 } = new MessageChannelMain()
-    communicator.postMessage(from, [port1])
-    ev.sender.postMessage('setUpChannelsResp', null, [port2])
+    communicator.postMessage([from, components[from].data.type], ev.ports)
 })
 
 ipcMain.on('save', (_, from, key, data) => {

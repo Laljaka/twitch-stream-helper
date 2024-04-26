@@ -1,5 +1,4 @@
 const { ipcRenderer, contextBridge } = require('electron/renderer')
-const { EventEmitter } = require('node:events')
 
 const _filename = 'elevenlabs'
 
@@ -10,15 +9,9 @@ for (const arg of process.argv) {
 
 if (!cred) window.close()
 
-/** @type {MessagePort | undefined} */
-let port
+const chan = new MessageChannel()
 
-const portStatus = new EventEmitter()
-
-ipcRenderer.once('setUpChannelsResp', (ev) => {
-    port = ev.ports[0]
-    portStatus.emit('ready')
-})
+ipcRenderer.postMessage('setUpChannelsReq', _filename, [chan.port2])
 
 contextBridge.exposeInMainWorld(`${_filename}Api`, {
     credentials: cred,
@@ -27,20 +20,9 @@ contextBridge.exposeInMainWorld(`${_filename}Api`, {
     },
     ready: () => ipcRenderer.send('state', _filename, true),
     receiver: (callback) => {
-        if (!port) {
-            portStatus.once('ready', () => {
-                port.addEventListener('message', (m) => {
-                    callback(m.data)
-                })
-                port.start()
-            })
-        } else {
-            port.addEventListener('message', (m) => {
-                callback(m.data)
-            })
-            port.start()
-        }
+        chan.port1.addEventListener('message', (m) => {
+            callback(m.data)
+        })
+        chan.port1.start()
     }
 })
-
-ipcRenderer.send('setUpChannelsReq', _filename)
