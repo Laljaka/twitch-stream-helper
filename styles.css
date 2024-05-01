@@ -146,11 +146,13 @@ menu > li {
   background-color: var(--bg-color);
   border-radius: var(--border-radius) 0 0 var(--border-radius);
   z-index: -10;
-  transition: top 200ms ease;
+  transition: transform 200ms ease, opacity 400ms ease;
   user-select: none;
-  top: -100px;
+  top: 25px;
+  transform: translateY(-70px);
   position: absolute;
   width: inherit;
+  opacity: 0;
 
   &::before, &::after {
     content: '';

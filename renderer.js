@@ -34,17 +34,17 @@ for (const componentName in dataFromMain) {
     const settings = createElementOneLine('div', {id:`-${componentName}`, className: 'component-settings'})
     settings.dataset['id'] = componentName
     settings.innerHTML = `
-    <fieldset class="wrapper setting" id="target"><legend>Settings</legend>
-    </fieldset>
-    <fieldset class="wrapper setting"><legend>Controls</legend>
-        <label class="switch">
-            <input type="checkbox">
-            <span class="thumb"></span>
-        </label>
-    </fieldset>
-    <samp class="wrapper">
-        <span>${dataFromMain[componentName].displayName} :> </span>
-    </samp>`
+        <fieldset class="wrapper setting" id="target"><legend>Settings</legend>
+        </fieldset>
+        <fieldset class="wrapper setting"><legend>Controls</legend>
+            <label class="switch">
+                <input type="checkbox">
+                <span class="thumb"></span>
+            </label>
+        </fieldset>
+        <samp class="wrapper">
+            <span>${dataFromMain[componentName].displayName} :> </span>
+        </samp>`
     mainElement.appendChild(settings)
     l.log(`${componentName} html loaded`)
 
@@ -103,6 +103,7 @@ let context
 
 const components = document.querySelectorAll('.inactive')
 const aaa = document.getElementById('aaa')
+let visible = false
 
 components.forEach((component, key) => {
     const form = document.getElementById(`-${component.id}`).querySelector('form')
@@ -118,7 +119,11 @@ components.forEach((component, key) => {
     }
 
     component.addEventListener('click', () => {
-        aaa.style.top = `${(70 * key) + 25}px`
+        aaa.style.transform = `translateY(${70 * key}px)`//`${(70 * key) + 25}px`
+        if (!visible) {
+            aaa.style.opacity = '1'
+            visible = true
+        }
         const previousReference = document.getElementById(`-${context}`)
         if (previousReference) previousReference.style.display = 'none'
         context = component.id

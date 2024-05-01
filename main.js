@@ -115,30 +115,26 @@ ipcMain.handle('main:loadData', () => {
     return toSend
 })
 
-ipcMain.handle('component:ctx', (_, x, y) => {
-    return new Promise((res, rej) => {
-        const menu = Menu.buildFromTemplate([
-            {   role: 'copy' },
-            {   role: 'cut' },
-            {   role: 'paste' },
-            {   type: 'separator' },
-            {   role: 'toggleDevTools' }
-        ])
-        menu.popup({ window: mainWindow, x: x, y: y, callback: () => res() }) 
-    })
-})
-
 ipcMain.handle('main:ctx', (_, x, y, items) => {
     return new Promise((res, rej) => {
         const menu = Menu.buildFromTemplate([
-            {   role: 'copy' },
-            {   role: 'cut' },
-            {   role: 'paste' },
-            {   type: 'separator' },
-            {   label: 'Clear data',
-                    click: () => res('clear'),
-                    enabled: (items.includes("FORM"))? true : false },
-            {   role: 'toggleDevTools' }
+            { role: 'copy' },
+            { role: 'cut' },
+            { role: 'paste' },
+            { type: 'separator' },
+            { label: 'Clear data',
+                click: () => res('clear'),
+                enabled: (items.includes("FORM"))? true : false },
+            { label: "Clear ALL data",
+                click: () => {
+                    for (const key in components) {
+                        components[key].setStorage({})
+                    }
+                    res('testing')
+                    app.quit()
+                },
+                visible: !app.isPackaged },
+            { role: 'toggleDevTools' }
         ])
         menu.popup({ window: mainWindow, x: x, y: y, callback: () => res('testing') })
     })

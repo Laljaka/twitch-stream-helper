@@ -2,10 +2,7 @@ const { ipcRenderer } = require("electron/renderer")
 
 const _filename = 'server'
 
-let cred
-for (const arg of process.argv) {
-    if (arg.startsWith(':;:')) cred = arg.slice(3)
-}
+const cred = process.argv.find((arg) => arg.startsWith(':;:')).slice(3)
 
 if (!cred) window.close()
 
