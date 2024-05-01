@@ -4,11 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <link rel="stylesheet" type="text/css" href="./predictions.css">
 </head>
 <body>
-    BOBOS
+    <div>data</div>
     
 </body>
-<script type="text/javascript" src="./predictions.cjs"></script>
+<script>
+    const elem = document.querySelector('div')
+
+    const sse = new EventSource('/predictions/stream')
+    sse.addEventListener('message', (ev) => {
+        elem.innerText = ev.data
+    })
+</script>
 </html>
