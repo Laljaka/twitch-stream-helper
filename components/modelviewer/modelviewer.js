@@ -56,18 +56,13 @@ window.addEventListener('resize', () => {
 const loader = new OBJLoader()
 const mtlload = new THREE.TextureLoader()
 
-const clock = new THREE.Clock();
-let delta = 0;
-// 30 fps
-const interval = 1 / 30;
-
 camera.position.z = 3;
 
-const light = new THREE.AmbientLight( 0xffffff );
+const light = new THREE.AmbientLight(0xffffff);
 scene.add(light);
 
-let xrot = (credentials['xrot'] / credentials['mul']) || 0.01
-let yrot = (credentials['yrot'] / credentials['mul']) || 0.01
+let xrot = isNaN(parseInt(credentials['xrot'])) ? 0.01 : (parseInt(credentials['xrot']) / 100)
+let yrot = isNaN(parseInt(credentials['yrot'])) ? 0.01 : (parseInt(credentials['yrot']) / 100)
 
 window.modelviewerApi.stdout('loading...')
 
@@ -87,19 +82,33 @@ model.traverse((child) => {
 if (!isOBJ) crash(new ReferenceError('Loaded file is not an OBJ'))
 
 scene.add(model);
+
+let delta = 0;
+const interval = 1 / credentials['fps']
+const clock = new THREE.Clock();
+clock.start()
+
+window.modelviewerApi.stdout(xrot, yrot)
+
 function animate() {
     requestAnimationFrame(animate);
     if (resizeLock.locked) return;
     model.rotation.x += xrot
     model.rotation.y += yrot
+
+    if (interval === Infinity) {
+        renderer.render(scene, camera);
+        return
+    }
+
     delta += clock.getDelta();
 
     if (delta > interval) {
-        renderer.render( scene, camera );
-
+        renderer.render(scene, camera);
         delta = delta % interval;
     }
 }
+
 window.modelviewerApi.stdout('displaying scene')
 window.modelviewerApi.ready()
 animate()

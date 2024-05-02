@@ -19,6 +19,7 @@ declare global {
             controlComponent: (start: boolean, ComponentName: string) => void
             openFile: (options: Electron.OpenDialogOptions) => Promise<Electron.OpenDialogReturnValue>
             openContext: (x: number, y: number, items: Array<string>) => Promise<string | null>
+            getFileName: (str: string) => Promise<string>
           }
     }
 }
