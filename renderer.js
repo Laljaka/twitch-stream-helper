@@ -10,7 +10,7 @@ const dataFromMain = await window.mainApi.loadData()
 l.log('data loaded')
 
 const allowedInputs = ['[type=checkbox]', '[type=password]', '[type=number]', '[type=file]', '[type=url]']
-const allowedElements = ['input', 'label', 'span']
+const allowedElements = ['input', 'label', 'span', 'div']
 
 
 /** 
@@ -115,6 +115,7 @@ components.forEach((component, key) => {
         if (inp instanceof HTMLInputElement) {
             if (typeof test === 'boolean') inp.checked = test 
             else inp.value = test
+            inp.dispatchEvent(new Event('fake-input', { bubbles: true }))
         }
     }
 

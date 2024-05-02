@@ -68,6 +68,12 @@ export function handleFileInput(element) {
     const hidden = createElementOneLine('input', {type: 'hidden', name: element.name})
     const test = element.dataset['extensions'].split(', ')
     button.innerText = element.placeholder
+    hidden.addEventListener('input', async () => {
+        button.innerText = hidden.value ? await window.mainApi.getFileName(hidden.value) : element.placeholder
+    })
+    hidden.addEventListener('fake-input', async () => {
+        button.innerText = hidden.value ? await window.mainApi.getFileName(hidden.value) : element.placeholder
+    })
     button.addEventListener('click', async (_) => {
         // TODO should not give control top opening any file to renderer process
         const response = await window.mainApi.openFile({ title: "Open", properties: ['openFile'], filters: [{name: test[0], extensions: test}]})

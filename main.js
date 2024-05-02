@@ -140,6 +140,15 @@ ipcMain.handle('main:ctx', (_, x, y, items) => {
     })
 })
 
+ipcMain.handle('main:getFileName', (_, pth) => {
+    try {
+        return path.basename(pth)
+    } catch (error) {
+        console.log(error)
+        return "not a path"
+    }
+})
+
 
 app.once('before-quit', (_) => {
     /** @type {import('./shared_types.d.ts').MultiComponentStorage} */
